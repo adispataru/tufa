@@ -18,7 +18,13 @@ node_types:
     description: Abstract Genomics Sequence Alignment Node
     capabilities:
       cloudlightning: cloudlightning.capabilities.SoSo
-              
+      os:
+        properties:
+          architecture: 
+            type: string
+            description: Arch system
+            required: false
+            default: false      
   cloudlightning.nodes.GenomicsEngineCPU:
     derived_from: cloudlightning.nodes.meta.GenomicsEngine
     tags:
