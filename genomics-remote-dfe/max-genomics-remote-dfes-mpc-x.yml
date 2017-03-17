@@ -1,0 +1,137 @@
+tosca_definitions_version: tosca_simple_yaml_1_0_0_wd03
+description: TOSCA genomics Myers sequence alignment 2016
+
+imports:
+  - "tosca-normative-types:1.0.0.wd06-SNAPSHOT"
+  - "cloudlightning-root:0.1.0-SNAPSHOT"
+  - "brooklyn-types-autoimport:0.10.0-SNAPSHOT"
+  - "brooklyn-types:0.1.0-SNAPSHOT"
+
+node_types:
+  cloudlightning.nodes.meta.GenomicsEngine:
+    derived_from: tosca.nodes.SoftwareComponent
+    description: Abstract Genomics Sequence Alignment Node
+  capabilities:
+    cloudlightning: cloudlightning.capabilities.SoSo
+    os:
+      properties:
+        architecture: x86_64
+        type: linux
+        distribution: centos
+        version: 6.7
+  properties:
+    num_cpu_threads:
+      type: integer
+      default: 16
+      required: false
+    input_file_location_reference_genome:
+      type: string
+      default: ''
+      required: true
+    input_file_location_pattern_reads:
+      type: string
+      default: ''
+      required: true
+    output_file_location_result:
+      type: string
+      default: ''
+      required: false
+
+  cloudlightning.nodes.meta.GenomicsEngineDFE:
+    derived_from: cloudlightning.nodes.meta.GenomicsEngine
+    description: Abstract Genomics Sequence-Alignment Node with DFE Acceleration
+    properties:
+      num_dfes:
+        type: integer
+        default: 1
+        required: false
+      target_dfe_model:
+        type: string
+        default: 'MAIA'
+        required: true
+
+  cloudlightning.nodes.meta.MPCX:
+    derived_from: tosca.nodes.Compute
+    capabilities:
+      cloudlightning: cloudlightning.capabilities.SoSo
+      endpoint: tosca.capabilities.Endpoint
+    properties:
+      num_dfes:
+        type: integer
+        default: 1
+        required: false
+      target_dfe_model:
+        type: string
+        default: MAIA
+        required: true
+
+
+topology_template:
+  inputs:
+    cpu_threads:
+      type: integer
+      constraints:
+        - in_range: [ 1, 32 ]
+    dfes:
+      type: integer
+      description:
+      constraints:
+        - valid_values: [ 1, 2, 4, 8 ]
+    dfe_model:
+      type: string
+      default: 'MAIA'
+      constraints:
+        - valid_values: [ 'MAIA' , 'ISCA' , 'VECTIS' , 'CORIA' ]
+
+
+  node_templates:
+    genomics_engine_remote_dfes:
+      derived_from: cloudlightning.nodes.meta.GenomicsEngineDFE:
+      description: Genomics Sequence Alignment CPU Host Node with Remote DFE Acceleration
+      capabilities:
+        cloudlightning_concrete: cloudlightning.capabilities.SoSo
+        host:
+          properties:
+            num_cpu_threads: { get_input: cpu_threads }
+      attributes:
+        # necessary for obtaining statistics to send to the telemetry system
+        maxeleros_json_endpoint:
+          { concat: [ "pandora://", { get_attribute: [ remote_dfes, ip_address ] }, ":18516" ] }
+      requirements:
+        dfe_endpoint:
+          node: remote_dfes
+          relationship: remote_dfe_endpoint
+          capability: Endpoint
+        - network_infiniband: infiniband_network
+      interfaces:
+        Standard:
+          inputs:
+            mpcx_ip_address: { get_attribute: [ remote_dfes, ip_address ] }
+          configure: scripts/configure_genomics_Myers_remote_DFE.sh
+          start: scripts/start_genomics_Myers_remote_DFE.sh
+          create:
+            implementation: scripts/create_genomics_Myers_remote_DFE.sh
+          stop: scripts/stop_genomics_Myers_remote_DFE.sh
+
+    remote_dfes:
+      derived_from: cloudlightning.nodes.meta.MPCX
+      capabilities:
+        cloudlightning_concrete: cloudlightning.capabilities.SoSo
+        endpoint_concrete: tosca.capabilities.Endpoint
+        host:
+          properties:
+            num_dfes: { get_input: dfes }
+            target_dfe_model: { get_input: dfe_model }
+      requirements:
+        - network_infiniband: infiniband_network
+
+    infiniband_network:
+      type: tosca.nodes.network.Network
+
+    relationship_templates:
+      remote_dfe_endpoint:
+        type: ConnectsTo
+
+
+
+
