@@ -19,12 +19,11 @@ node_types:
     capabilities:
       cloudlightning: cloudlightning.capabilities.SoSo
       os:
-        properties:
-          architecture: 
-            type: string
-            description: Arch system
-            required: false
-            default: false      
+        architecture: 
+          type: string
+          description: Arch system
+          required: false
+          default: false      
   cloudlightning.nodes.GenomicsEngineCPU:
     derived_from: cloudlightning.nodes.meta.GenomicsEngine
     tags:
