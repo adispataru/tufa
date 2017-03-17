@@ -59,6 +59,16 @@ capability_types:
         description: The resource is a numascale like machine
         required: false
         default: false
+  cloudlightning.capabilities.NodeOs:
+    description: Try capability
+    derived_from: cloudlightning.capabilities.ClassAd
+    properties:
+      architecture: 
+        type: string
+        description: Arch system
+        required: false
+        default: false
+      
   cloudlightning.capabilities.SoSoMaterialised:
     description: Capability to be used by types materialised by SoSm
     derived_from: cloudlightning.capabilities.SoSo
