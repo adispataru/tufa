@@ -27,6 +27,6 @@ node_types:
     description: Embree based RayTracking Node With Intel Phi Acceleration
     capabilities:
       cloudlightning_concrete: cloudlightning.capabilities.SoSo
-    attributes:
+    properties:
       harware_type: { "CPU" }  
       
