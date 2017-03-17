@@ -1,0 +1,88 @@
+tosca_definitions_version: tosca_simple_yaml_1_0_0_wd03
+description: TOSCA Demo 2016
+template_name: cloudlightning-demo2016
+template_version: 0.1.0-SNAPSHOT
+template_author: MarianNeagul
+
+imports:
+  - "tosca-normative-types:1.0.0.wd06-SNAPSHOT"
+  - "cloudlightning-root:0.1.0-SNAPSHOT"
+  - "brooklyn-types-autoimport:0.10.0-SNAPSHOT"
+  - "brooklyn-types:0.1.0-SNAPSHOT"
+
+node_types:
+  cloudlightning.nodes.meta.RayTraceingEngine:
+    derived_from: tosca.nodes.SoftwareComponent
+    tags:
+      icon: images/raytrace.png
+    description: Abstract RayTracking Node
+    capabilities:
+      cloudlightning: cloudlightning.capabilities.SoSo
+    properties:
+      cloudlightning.endpoint:
+        type: string
+        default: ''
+        required: false
+      cloudlightning.endpoint.type:
+        type: string
+        default: ''
+        required: false
+
+  cloudlightning.nodes.PhiRayTraceingEngine:
+    derived_from: cloudlightning.nodes.meta.RayTraceingEngine
+    tags:
+      icon: images/raytrace_intel_phi.png
+    description: Embree based RayTracking Node With Intel Phi Acceleration
+    capabilities:
+      cloudlightning_concrete: cloudlightning.capabilities.SoSo
+#      cloudlightning: cloudlightning.capabilities.SoSoMaterialised
+    attributes:
+      raytracer_endpoint: { concat: [ "ssh://", get_attribute: [ HOST, public_ip_address ], ":8222" ] }
+
+      #teststart: { get_operation_output: [ SELF, Standard, create, FOO_START ] }
+      #testcreate: { get_operation_output: [ SELF, Standard, create, FOO_CREATE ] }
+    interfaces:
+      Standard:
+        start: scripts/start_phi_raytracer.sh
+        create:
+          implementation: scripts/create_phi_raytracer.sh
+        stop: scripts/stop_phi_raytracer.sh
+
+  cloudlightning.nodes.CPURayTraceingEngine:
+    derived_from: cloudlightning.nodes.meta.RayTraceingEngine
+    tags:
+      icon: images/raytrace_intel.png 
+    capabilities:
+      cloudlightning_concrete: cloudlightning.capabilities.SoSo
+#      cloudlightning: cloudlightning.capabilities.SoSoMaterialised
+    attributes:
+      raytracer_endpoint: { concat: [ "ssh://", get_attribute: [ HOST, public_ip_address ], ":8222" ] }
+    interfaces:
+      Standard:
+        start: scripts/start_cpu_raytracer.sh
+        create:
+          implementation: scripts/create_cpu_raytracer.sh
+        stop: scripts/stop_cpu_raytracer.sh
+
+
+  cloudlightning.nodes.GPURayTraceingEngine:
+    derived_from: cloudlightning.nodes.meta.RayTraceingEngine
+    tags:
+      icon: images/raytrace_nvidia.png
+    description: GPU Based RayTracking implementation
+    capabilities:
+      cloudlightning_soso: cloudlightning.capabilities.SoSoMaterialised
+
+
+  cloudlightning.nodes.RayTraceingWebservice:
+    derived_from: tosca.nodes.SoftwareComponent
+    tags:
+      icon: images/600px-Gnome-web-browser.svg.png
+    attributes:
+      ui_endpoint: { concat: [ "http://", get_attribute: [ HOST, public_ip_address ], ":8081" ] }
+      cadvisor_endpoint: { concat: [ "http://", get_attribute: [ HOST, public_ip_address ], ":8080" ] }
+    interfaces:
+      Standard:
+        start: scripts/start_raytracer_webservice.sh
+        create: scripts/create_raytracer_webservice.sh
+        stop: scripts/stop_raytracer_webservice.sh
