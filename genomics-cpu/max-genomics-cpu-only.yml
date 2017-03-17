@@ -32,26 +32,4 @@ node_types:
     description: Embree based RayTracking Node With Intel Phi Acceleration
     capabilities:
       cloudlightning_concrete: cloudlightning.capabilities.SoSo
-      os:
-        properties:
-          architecture: x86_64
-          type: linux
-          distribution: centos
-          version: 6.7
-      properties:
-        num_cpu_threads:
-          type: integer
-          default: 16
-          required: false
-        input_file_location_reference_genome:
-          type: string
-          default: ''
-          required: true
-        input_file_location_pattern_reads:
-          type: string
-          default: ''
-          required: true
-        output_file_location_result:
-          type: string
-          default: ''
-          required: false
+      
