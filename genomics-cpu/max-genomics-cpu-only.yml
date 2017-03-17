@@ -1,5 +1,8 @@
 tosca_definitions_version: tosca_simple_yaml_1_0_0_wd03
 description: TOSCA genomics Myers sequence alignment 2016
+template_name: cloudlightning-cpu-max
+template_version: 0.1.0-SNAPSHOT
+
 
 imports:
   - "tosca-normative-types:1.0.0.wd06-SNAPSHOT"
@@ -36,29 +39,4 @@ node_types:
       type: string
       default: ''
       required: false
-
-
-topology_template:
-  inputs:
-    cpu_threads:
-      type: integer
-      constraints:
-        - in_range: [ 1, 32 ]
-
-  node_templates:
-    genomics_engine_cpu:
-      derived_from: cloudlightning.nodes.meta.GenomicsEngine
-      description: Genomics Sequence Alignment CPU
-      capabilities:
-        cloudlightning_concrete: cloudlightning.capabilities.SoSo
-        host:
-          properties:
-          num_cpu_threads: { get_input: cpu_threads }
-      interfaces:
-        Standard:
-          configure: scripts/configure_genomics_Myers_CPU.sh
-          start: scripts/start_genomics_Myers_CPU.sh
-          create:
-            implementation: scripts/create_genomics_Myers_CPU.sh
-          stop: scripts/stop_genomics_Myers_CPU.sh
 
