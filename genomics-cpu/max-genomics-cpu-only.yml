@@ -31,4 +31,9 @@ node_types:
     description: Embree based RayTracking Node With Intel Phi Acceleration
     capabilities:
       cloudlightning_concrete: cloudlightning.capabilities.SoSo
-      
+      os:
+        architecture: 
+          type: string
+          description: Arch system
+          required: false
+          default: false      
