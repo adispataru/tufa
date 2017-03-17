@@ -28,5 +28,8 @@ node_types:
     capabilities:
       cloudlightning_concrete: cloudlightning.capabilities.SoSo
     properties:
-      harware_type: { "CPU" }  
+      cloudlightning.endpoint:
+        type: string
+        default: 'cpu'
+        required: false 
       
