@@ -1,0 +1,64 @@
+tosca_definitions_version: tosca_simple_yaml_1_0_0_wd03
+description: TOSCA genomics Myers sequence alignment 2016
+
+imports:
+  - "tosca-normative-types:1.0.0.wd06-SNAPSHOT"
+  - "cloudlightning-root:0.1.0-SNAPSHOT"
+  - "brooklyn-types-autoimport:0.10.0-SNAPSHOT"
+  - "brooklyn-types:0.1.0-SNAPSHOT"
+
+node_types:
+  cloudlightning.nodes.meta.GenomicsEngine:
+    derived_from: tosca.nodes.SoftwareComponent
+    description: Abstract Genomics Sequence Alignment Node
+  capabilities:
+    cloudlightning: cloudlightning.capabilities.SoSo
+    os:
+      properties:
+        architecture: x86_64
+        type: linux
+        distribution: centos
+        version: 6.7
+  properties:
+    num_cpu_threads:
+      type: integer
+      default: 16
+      required: false
+    input_file_location_reference_genome:
+      type: string
+      default: ''
+      required: true
+    input_file_location_pattern_reads:
+      type: string
+      default: ''
+      required: true
+    output_file_location_result:
+      type: string
+      default: ''
+      required: false
+
+
+topology_template:
+  inputs:
+    cpu_threads:
+      type: integer
+      constraints:
+        - in_range: [ 1, 32 ]
+
+  node_templates:
+    genomics_engine_cpu:
+      derived_from: cloudlightning.nodes.meta.GenomicsEngine
+      description: Genomics Sequence Alignment CPU
+      capabilities:
+        cloudlightning_concrete: cloudlightning.capabilities.SoSo
+        host:
+          properties:
+          num_cpu_threads: { get_input: cpu_threads }
+      interfaces:
+        Standard:
+          configure: scripts/configure_genomics_Myers_CPU.sh
+          start: scripts/start_genomics_Myers_CPU.sh
+          create:
+            implementation: scripts/create_genomics_Myers_CPU.sh
+          stop: scripts/stop_genomics_Myers_CPU.sh
+

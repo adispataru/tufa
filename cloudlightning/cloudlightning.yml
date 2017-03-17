@@ -1,0 +1,64 @@
+tosca_definitions_version: tosca_simple_yaml_1_0_0_wd03
+description: TOSCA CloudLightning Root Type
+template_name: cloudlightning-root
+template_version: 0.1.0-SNAPSHOT
+template_author: MarianNeagul
+
+
+imports:
+  - "tosca-normative-types:1.0.0.wd06-SNAPSHOT"
+
+node_types:
+  cloudlightning.nodes.Root:
+    derived_from: tosca.nodes.Root
+    description: The Root Type
+    tags:
+      icon: images/cloudlightning_icon_circle.png
+    requirements:
+
+  cloudlightning.nodes.CloudLightningCore:
+    derived_from: cloudlightning.nodes.Root
+    description: CloudLightning Core Type
+    properties:
+      cloudlightning_requirements_string:
+        type: string
+        required: false
+    capabilities:
+      wrapper_node_capabilities: tosca.capabilities.Container
+
+capability_types:
+  cloudlightning.capabilities.Root:
+    description: Cloudlightning core capability
+    derived_from: tosca.capabilities.Root
+  cloudlightning.capabilities.ClassAd:
+    description: Classad capable capability
+    derived_from: cloudlightning.capabilities.Root
+  cloudlightning.capabilities.SoSo:
+    description: Capability that indicates that the resource is SoSm managed
+    derived_from: cloudlightning.capabilities.ClassAd
+    properties:
+      num_cpus:
+        type: integer
+        description: Number of required CPUs
+        required: false
+        constraints:
+          - greater_or_equal: 1
+        default: 1
+      has_gpu:
+        type: boolean
+        description: GPU needed
+        required: false
+        default: false
+      has_phi:
+        type: boolean
+        description: Intel Phi Needed
+        required: false
+        default: false
+      is_numascale:
+        type: boolean
+        description: The resource is a numascale like machine
+        required: false
+        default: false
+  cloudlightning.capabilities.SoSoMaterialised:
+    description: Capability to be used by types materialised by SoSm
+    derived_from: cloudlightning.capabilities.SoSo
