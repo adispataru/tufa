@@ -18,13 +18,7 @@ node_types:
     description: Abstract Genomics Sequence Alignment Node
     capabilities:
       cloudlightning: cloudlightning.capabilities.SoSo
-      os:
-        properties:
-          architecture: x86_64
-          type: linux
-          distribution: centos
-          version: 6.7
-        
+              
   cloudlightning.nodes.GenomicsEngineCPU:
     derived_from: cloudlightning.nodes.meta.GenomicsEngine
     tags:
