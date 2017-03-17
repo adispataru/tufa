@@ -67,7 +67,7 @@ capability_types:
         type: string
         description: Arch system
         required: false
-        default: false
+        default: x86_64
       
   cloudlightning.capabilities.SoSoMaterialised:
     description: Capability to be used by types materialised by SoSm
