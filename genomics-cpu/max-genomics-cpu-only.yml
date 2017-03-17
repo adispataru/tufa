@@ -28,5 +28,5 @@ node_types:
     capabilities:
       cloudlightning_concrete: cloudlightning.capabilities.SoSo
     attributes:
-      harware_type: CPU  
+      harware_type: {["CPU"] }  
       
