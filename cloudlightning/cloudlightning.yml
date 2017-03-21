@@ -65,10 +65,24 @@ capability_types:
     properties:
       architecture: 
         type: string
-        description: Arch system
+        description: Architecture system
         required: false
         default: x86_64
-      
+      type:
+        type: string
+	      description: Operating system type
+	      required: false
+	      default: linux
+      distribution:
+        type: string
+        description: Distribution system
+        required: false
+        default: centos
+      version:
+        type: string
+        description: Operating system version
+        required:false   
+        default: 6.7
   cloudlightning.capabilities.SoSoMaterialised:
     description: Capability to be used by types materialised by SoSm
     derived_from: cloudlightning.capabilities.SoSo
