@@ -1,0 +1,108 @@
+tosca_definitions_version: tosca_simple_yaml_1_0_0_wd03
+description: TOSCA genomics Myers sequence alignment 2016
+template_name: cloudlightning-cpu-max
+template_version: 0.1.0-SNAPSHOT
+
+
+imports:
+  - "tosca-normative-types:1.0.0.wd06-SNAPSHOT"
+  - "cloudlightning-root:0.1.0-SNAPSHOT"
+  - "brooklyn-types-autoimport:0.10.0-SNAPSHOT"
+  - "brooklyn-types:0.1.0-SNAPSHOT"
+
+node_types:
+  cloudlightning.nodes.meta.GenomicsEngine:
+    derived_from: tosca.nodes.SoftwareComponent 
+    tags:
+      icon: images/raytrace.png  
+    description: Abstract Genomics Sequence Alignment Node
+    capabilities:
+      cloudlightning: cloudlightning.capabilities.SoSo
+      os: cloudlightning.capabilities.NodeOs
+             
+  cloudlightning.nodes.GenomicsEngineCPU:
+    derived_from: cloudlightning.nodes.meta.GenomicsEngine
+    tags:
+          icon: images/raytrace_intel_phi.png
+    description: Genomics Engine Node with CPU
+    capabilities:
+      cloudlightning_concrete: cloudlightning.capabilities.SoSo
+    properties:
+      cloudlightning.hardware:
+        type: string
+        default: 'cpu'
+        required: true 
+      cloudlightning.virtualization:
+        type: string
+        default: 'bare_metal'
+        required: true
+      cloudlightning.num_cpu_threads:
+        type: integer
+        default: 16
+        required: false
+      cloudlightning.input_file_location_reference_genome:
+        type: string
+        default: ''
+        required: true
+      cloudlightning.input_file_location_pattern_reads:
+        type: string
+        default: ''
+        required: true
+      cloudlightning.output_file_location_result:
+        type: string
+        default: ''
+        required: false
+    interfaces:
+        Standard:
+          configure: scripts/configure_genomics_Myers_CPU.sh
+          start: scripts/start_genomics_Myers_CPU.sh
+          create:
+            implementation: scripts/create_genomics_Myers_CPU.sh
+          stop: scripts/stop_genomics_Myers_CPU.sh
+  cloudlightning.nodes.GenomicsEngineLocalDFE:
+    derived_from: cloudlightning.nodes.meta.GenomicsEngine
+    tags:
+          icon: images/raytrace_intel_phi.png
+    description: Genomics Sequence Alignment CPU Host Node with Local DFE Acceleration
+    capabilities:
+      cloudlightning_concrete: cloudlightning.capabilities.SoSo
+    properties:
+      cloudlightning.hardware:
+        type: string
+        default: 'local_dfe'
+        required: true 
+      cloudlightning.virtualization:
+        type: string
+        default: 'bare_metal'
+        required: true
+      cloudlightning.num_cpu_threads:
+        type: integer
+        default: 16
+        required: false
+      cloudlightning.input_file_location_reference_genome:
+        type: string
+        default: ''
+        required: true
+      cloudlightning.input_file_location_pattern_reads:
+        type: string
+        default: ''
+        required: true
+      cloudlightning.output_file_location_result:
+        type: string
+        default: ''
+        required: false
+      cloudlightning.num_dfes:
+        type: integer
+        default: 1
+        required: false
+      cloudlightning.target_dfe_model:
+        type: string
+        default: 'MAIA'
+        required: true
+    interfaces:
+        Standard:
+          configure: scripts/configure_genomics_Myers_local_DFE.sh
+          start: scripts/start_genomics_Myers_local_DFE.sh
+          create:
+            implementation: scripts/create_genomics_Myers_local_DFE.sh
+          stop: scripts/stop_genomics_Myers_local_DFE.sh
