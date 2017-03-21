@@ -52,3 +52,10 @@ node_types:
         type: string
         default: ''
         required: false
+    interfaces:
+        Standard:
+          configure: scripts/configure_genomics_Myers_CPU.sh
+          start: scripts/start_genomics_Myers_CPU.sh
+          create:
+            implementation: scripts/create_genomics_Myers_CPU.sh
+          stop: scripts/stop_genomics_Myers_CPU.sh
