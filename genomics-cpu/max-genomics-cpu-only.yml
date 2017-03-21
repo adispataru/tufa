@@ -31,7 +31,11 @@ node_types:
       cloudlightning.hardware:
         type: string
         default: 'cpu'
-        required: false 
+        required: true 
+      cloudlightning.virtualization:
+        type: string
+        default: 'bare_metal'
+        required: true
       cloudlightning.num_cpu_threads:
         type: integer
         default: 16
