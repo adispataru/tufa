@@ -32,4 +32,7 @@ node_types:
         type: string
         default: 'cpu'
         required: false 
-      
+      cloudlightning.num_cpu_threads:
+        type: integer
+        default: 16
+        required: false
