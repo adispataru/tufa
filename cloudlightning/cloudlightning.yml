@@ -70,9 +70,9 @@ capability_types:
         default: x86_64
       type:
         type: string
-	      description: Operating system type
-	      required: false
-	      default: linux
+        description: Operating system type
+        required: false
+        default: linux
       distribution:
         type: string
         description: Distribution system
@@ -81,7 +81,7 @@ capability_types:
       version:
         type: string
         description: Operating system version
-        required:false   
+        required: false   
         default: 6.7
   cloudlightning.capabilities.SoSoMaterialised:
     description: Capability to be used by types materialised by SoSm
