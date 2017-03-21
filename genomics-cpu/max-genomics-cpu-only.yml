@@ -36,3 +36,15 @@ node_types:
         type: integer
         default: 16
         required: false
+      cloudlightning.input_file_location_reference_genome:
+        type: string
+        default: ''
+        required: true
+      cloudlightning.input_file_location_pattern_reads:
+        type: string
+        default: ''
+        required: true
+      output_file_location_result:
+        type: string
+        default: ''
+        required: false
