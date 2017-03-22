@@ -86,3 +86,15 @@ capability_types:
   cloudlightning.capabilities.SoSoMaterialised:
     description: Capability to be used by types materialised by SoSm
     derived_from: cloudlightning.capabilities.SoSo
+  cloudlightning.capabilities.hardware.CPU:
+    description: This capability will be used by services with implemented for CPU only
+    derived_from: cloudlightning.capabilities.Root
+  cloudlightning.capabilities.hardware.GPU:
+    description: This capability will be used by services with implemented for GPU only
+    derived_from: cloudlightning.capabilities.Root
+  cloudlightning.capabilities.hardware.DFE:
+    description: This capability will be used by services with implemented for DFE only
+    derived_from: cloudlightning.capabilities.Root
+  cloudlightning.capabilities.hardware.MIC:
+    description: This capability will be used by services with implemented for MIC only
+    derived_from: cloudlightning.capabilities.Root

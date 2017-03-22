@@ -27,6 +27,7 @@ node_types:
     description: Genomics Engine Node with CPU
     capabilities:
       cloudlightning_concrete: cloudlightning.capabilities.SoSo
+      hardware_type: cloudlightning.capabilities.CPU
     properties:
       cloudlightning.hardware:
         type: string
