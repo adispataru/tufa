@@ -12,7 +12,7 @@ imports:
 
 node_types:
   cloudlightning.nodes.meta.RayTraceingEngine:
-    derived_from: tosca.nodes.SoftwareComponent
+    derived_from: cloudlightning.nodes.CloudlightningSoftware
     tags:
       icon: images/raytrace.png
     description: Abstract RayTracking Node

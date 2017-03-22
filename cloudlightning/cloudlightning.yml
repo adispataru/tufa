@@ -26,6 +26,13 @@ node_types:
     capabilities:
       wrapper_node_capabilities: tosca.capabilities.Container
 
+  cloudlightning.nodes.CloudlightningSoftware:
+    derived_from: tosca.nodes.SoftwareComponent
+    description: Abstract Cloudlightning Software to be extended by all services
+    properties:
+      hardware_type: cloudlightning.capabilities.hardware.HardwareType 
+      virt_type: cloudlightning.capabilities.virt.VirtualizationType
+
 capability_types:
   cloudlightning.capabilities.Root:
     description: Cloudlightning core capability
