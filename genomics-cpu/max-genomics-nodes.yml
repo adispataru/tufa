@@ -18,8 +18,9 @@ node_types:
     description: Abstract Genomics Sequence Alignment Node
     capabilities:
       cloudlightning: cloudlightning.capabilities.SoSo
-      os: cloudlightning.capabilities.NodeOs
       hardware_type: cloudlightning.capabilities.hardware.HardwareType 
+      virt_type: cloudlightning.capabilities.virt.VirtualizationType
+      os: cloudlightning.capabilities.NodeOs
              
   cloudlightning.nodes.GenomicsEngineCPU:
     derived_from: cloudlightning.nodes.meta.GenomicsEngine
@@ -27,8 +28,9 @@ node_types:
           icon: images/raytrace_intel_phi.png
     description: Genomics Engine Node with CPU
     capabilities:
-      cloudlightning_concrete: cloudlightning.capabilities.SoSo
+      cloudlightning: cloudlightning.capabilities.SoSoMaterialised
       hardware_type: cloudlightning.capabilities.hardware.CPU
+      virt_type: cloudlightning.capabilities.virt.BareMetal
     properties:
       cloudlightning.hardware:
         type: string
