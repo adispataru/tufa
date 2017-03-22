@@ -12,12 +12,14 @@ imports:
 
 node_types:
   cloudlightning.nodes.meta.GenomicsEngine:
-    derived_from: cloudlightning.nodes.CloudlightningSoftware 
+    derived_from: tosca.nodes.SoftwareComponent 
     tags:
       icon: images/raytrace.png  
     description: Abstract Genomics Sequence Alignment Node
     capabilities:
       cloudlightning: cloudlightning.capabilities.SoSo
+      hardware_type: cloudlightning.capabilities.hardware.HardwareType 
+      virt_type: cloudlightning.capabilities.virt.VirtualizationType
       os: cloudlightning.capabilities.NodeOs
              
   cloudlightning.nodes.GenomicsEngineCPU:
