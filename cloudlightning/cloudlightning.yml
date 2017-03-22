@@ -86,15 +86,30 @@ capability_types:
   cloudlightning.capabilities.SoSoMaterialised:
     description: Capability to be used by types materialised by SoSm
     derived_from: cloudlightning.capabilities.SoSo
+  cloudlightning.capabilities.hardware.HardwareType:
+    description: Abstract hardware type definition
+    derived_from: cloudlightning.capabilities.Root
   cloudlightning.capabilities.hardware.CPU:
-    description: This capability will be used by services with implemented for CPU only
-    derived_from: cloudlightning.capabilities.Root
+    description: This capability will be used by services implemented for CPU only
+    derived_from: cloudlightning.capabilities.hardware.HardwareType
   cloudlightning.capabilities.hardware.GPU:
-    description: This capability will be used by services with implemented for GPU only
-    derived_from: cloudlightning.capabilities.Root
+    description: This capability will be used by services implemented for GPU only
+    derived_from: cloudlightning.capabilities.hardware.HardwareType
   cloudlightning.capabilities.hardware.DFE:
-    description: This capability will be used by services with implemented for DFE only
-    derived_from: cloudlightning.capabilities.Root
+    description: This capability will be used by services implemented for DFE only
+    derived_from: cloudlightning.capabilities.hardware.HardwareType
   cloudlightning.capabilities.hardware.MIC:
-    description: This capability will be used by services with implemented for MIC only
+    description: This capability will be used by services implemented for MIC only
+    derived_from: cloudlightning.capabilities.hardware.HardwareType
+  cloudlightning.capabilities.virt.VirtualizationType:
+    description: Abstract Virtualization definition
     derived_from: cloudlightning.capabilities.Root
+  cloudlightning.capabilities.virt.Container:
+    description: This capability will be used by services implemented with Docker image
+    derived_from: cloudlightning.capabilities.virt.VirtualizationType
+  cloudlightning.capabilities.virt.VM:
+    description: This capability will be used by services implemented for VMs -- optionally we can provide an image-id--.
+    derived_from: cloudlightning.capabilities.virt.VirtualizationType
+  cloudlightning.capabilities.virt.BareMetal:
+    description: This capability will be used by services implemented for BareMetal, i.e., all dependencies must be installed.
+    derived_from: cloudlightning.capabilities.virt.VirtualizationType

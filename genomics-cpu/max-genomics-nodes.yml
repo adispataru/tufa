@@ -19,6 +19,7 @@ node_types:
     capabilities:
       cloudlightning: cloudlightning.capabilities.SoSo
       os: cloudlightning.capabilities.NodeOs
+      hardware_type: cloudlightning.capabilities.hardware.HardwareType 
              
   cloudlightning.nodes.GenomicsEngineCPU:
     derived_from: cloudlightning.nodes.meta.GenomicsEngine
