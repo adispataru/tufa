@@ -8,31 +8,6 @@ template_author: MarianNeagul
 imports:
   - "tosca-normative-types:1.0.0.wd06-SNAPSHOT"
 
-node_types:
-  cloudlightning.nodes.Root:
-    derived_from: tosca.nodes.Root
-    description: The Root Type
-    tags:
-      icon: images/cloudlightning_icon_circle.png
-    requirements:
-
-  cloudlightning.nodes.CloudLightningCore:
-    derived_from: cloudlightning.nodes.Root
-    description: CloudLightning Core Type
-    properties:
-      cloudlightning_requirements_string:
-        type: string
-        required: false
-    capabilities:
-      wrapper_node_capabilities: tosca.capabilities.Container
-
-  cloudlightning.nodes.CloudlightningSoftware:
-    derived_from: tosca.nodes.SoftwareComponent
-    description: Abstract Cloudlightning Software to be extended by all services
-    properties:
-      hardware_type: cloudlightning.capabilities.hardware.HardwareType 
-      virt_type: cloudlightning.capabilities.virt.VirtualizationType
-
 capability_types:
   cloudlightning.capabilities.Root:
     description: Cloudlightning core capability
@@ -120,3 +95,28 @@ capability_types:
   cloudlightning.capabilities.virt.BareMetal:
     description: This capability will be used by services implemented for BareMetal, i.e., all dependencies must be installed.
     derived_from: cloudlightning.capabilities.virt.VirtualizationType
+
+node_types:
+  cloudlightning.nodes.Root:
+    derived_from: tosca.nodes.Root
+    description: The Root Type
+    tags:
+      icon: images/cloudlightning_icon_circle.png
+    requirements:
+
+  cloudlightning.nodes.CloudLightningCore:
+    derived_from: cloudlightning.nodes.Root
+    description: CloudLightning Core Type
+    properties:
+      cloudlightning_requirements_string:
+        type: string
+        required: false
+    capabilities:
+      wrapper_node_capabilities: tosca.capabilities.Container
+
+  cloudlightning.nodes.CloudlightningSoftware:
+    derived_from: tosca.nodes.SoftwareComponent
+    description: Abstract Cloudlightning Software to be extended by all services
+    properties:
+      hardware_type: cloudlightning.capabilities.hardware.HardwareType 
+      virt_type: cloudlightning.capabilities.virt.VirtualizationType
