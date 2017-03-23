@@ -34,12 +34,13 @@ node_types:
     properties:
       num_cpus:
         type: list
+        description: Minimum and maximum number of CPUs
+        constraints:
+           - max_length: 2
+        default: [1, 1]
         entry_schema:
-          description: Minimum and maximum number of CPUs
+          description: Number of CPU units
           type: integer
-          constraints:
-           - max_length: 128
-          default: [1, 1]
       cloudlightning.num_cpu_threads:
         type: integer
         default: 16
