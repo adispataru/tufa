@@ -36,7 +36,6 @@ node_types:
         type: list
         description: Minimum and maximum number of CPUs
         entry_schema:
-          description: Number of CPU units
           type: integer
           constraints:
            - max_length: 2
