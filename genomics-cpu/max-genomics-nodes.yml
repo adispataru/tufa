@@ -32,6 +32,13 @@ node_types:
       hardware_type: cloudlightning.capabilities.hardware.CPU
       virt_type: cloudlightning.capabilities.virt.BareMetal
     properties:
+      num_cpus:
+        type: list
+        description: Min and max resource units
+        required: false
+        constraints:
+          - max_length: 2
+        default: [1, 1]
       cloudlightning.num_cpu_threads:
         type: integer
         default: 16
