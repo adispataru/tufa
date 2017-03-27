@@ -16,6 +16,13 @@ node_types:
       icon: images/cloudlightning_icon_circle.png
     requirements:
 
+  cloudlightning.nodes.CLCompute:
+    abstract: true
+    derived_from: tosca.nodes.Compute
+    description: Abstract CL compute type
+    tags:
+      icon: images/cloudlightning_icon_circle.png
+      
   cloudlightning.nodes.CloudLightningCore:
     derived_from: cloudlightning.nodes.Root
     description: CloudLightning Core Type
