@@ -56,7 +56,7 @@ node_types:
       cloudlightning_concrete: cloudlightning.capabilities.SoSo
 #      cloudlightning: cloudlightning.capabilities.SoSoMaterialised
     attributes:
-      raytracer_endpoint: { concat: [ "ssh://", get_attribute: [ HOST, public_ip_address ], ":8222" ] }
+      raytracer_endpoint: { concat: [ "ssh://", get_attribute: [ HOST, public_ip_address ], ":20" ] }
     interfaces:
       Standard:
         start: scripts/start_cpu_raytracer.sh
