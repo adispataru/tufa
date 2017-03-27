@@ -61,7 +61,7 @@ node_types:
       Standard:
         start: scripts/start_cpu_raytracer.sh
         create:
-          implementation: scripts/create_cpu_raytracer.sh
+          implementation: scripts/dummy_create.sh
         stop: scripts/stop_cpu_raytracer.sh
 
 
