@@ -1,0 +1,187 @@
+tosca_definitions_version: alien_dsl_1_3_0
+description: TOSCA Demo 2016
+template_name: cloudlightning-intel-types
+template_version: 0.1.0-SNAPSHOT
+template_author: AdrianSpataru
+
+imports:
+  - "tosca-normative-types:1.0.0-SNAPSHOT"
+  - "cl-normative-types:0.1.0-SNAPSHOT"
+  - "docker-types:1.2.0-SNAPSHOT"
+
+repositories:
+  docker:
+    url: https://hub.docker.com/
+    type: http
+
+node_types:    
+  cloudlightning.nodes.meta.RayTracingEngine:
+    abstract: true
+    derived_from: cloudlightning.nodes.CLService
+    tags:
+      icon: images/raytrace.png
+    description: Abstract RayTracing Node
+    capabilities:
+      raytrace_engine: cloudlightning.capabilities.endpoint.docker.RayTracing
+      service: cloudlightning.capabilities.CLService.RayTracingEngine
+  
+  cloudlightning.nodes.SimpleRayTracingEngine:
+    derived_from: cloudlightning.nodes.CLContainer
+    properties:
+      cpu_share:
+        type: float
+        required: true
+        default: 0.1
+      mem_share:
+        type: scalar-unit.size
+        required: true
+        default: 512 MB
+    tags:
+      icon: images/raytrace_intel.png
+    capabilities:
+      raytrace_engine: cloudlightning.capabilities.endpoint.docker.RayTracing
+      service: cloudlightning.capabilities.CLService.RayTracingEngine
+    interfaces:
+      Standard:
+        create:
+          inputs:
+            OPT_hostname : "embree_renderer.weave.local"
+          implementation:
+            file: "pkudaiyar/ray_tracing_app_embree:1"
+            repository: docker
+            type: tosca.artifacts.Deployment.Image.Container.Docker
+
+  cloudlightning.nodes.PhiRayTracingEngine:
+    derived_from: cloudlightning.nodes.SimpleRayTracingEngine
+    tags:
+      icon: images/raytrace_intel_phi.png
+    description: Embree based RayTracking Node With Intel Phi Acceleration
+    properties:
+      cpu_share:
+        type: float
+        required: true
+        default: 0.1
+      mem_share:
+        type: scalar-unit.size
+        required: true
+        default: 512 MB
+    # this can be ommited as is inherrited from SimpleRayTracingEngine
+    # capabilities:
+    #   raytrace_engine: cloudlightning.capabilities.endpoint.docker.RayTracing
+    #   service: cloudlightning.capabilities.CLService.RayTracingEngine
+    #removing requirments that generate cyclic workflow.
+    # requirements:
+    #   - accelerator: 
+    #       capability: cloudlightning.capabilities.AcceleratedByMIC
+    #       relationship: cloudlightning.relationships.AcceleratedByMIC
+    interfaces:
+      Standard:
+        create:
+          inputs:
+            OPT_hostname : "embree_renderer.weave.local" # not inherited 
+            CONSTRAINT_mic_CLUSTER: "available"
+          implementation:
+            file: "pkudaiyar/ray_tracing_app_embree:1"
+            repository: docker
+            type: tosca.artifacts.Deployment.Image.Container.Docker
+
+
+  cloudlightning.nodes.GPURayTracingEngine:
+    derived_from: cloudlightning.nodes.SimpleRayTracingEngine
+    tags:
+      icon: images/raytrace_nvidia.png
+    description: GPU Based RayTracking implementation
+    capabilities:
+      service: cloudlightning.capabilities.CLService.RayTracingEngine
+    requirements:
+      - accelerator: 
+          capability: cloudlightning.capabilities.AcceleratedByGPU
+          relationship: cloudlightning.relationships.AcceleratedByGPU
+    interfaces:
+      Standard:
+        create:
+          inputs:
+            OPT_hostname : "embree_renderer.weave.local" # not inherited 
+            CONSTRAINT_gpu_CLUSTER: "available"
+          implementation:
+            file: "pkudaiyar/ray_tracing_app_embree:1"
+            repository: docker
+            type: tosca.artifacts.Deployment.Image.Container.Docker
+
+
+  cloudlightning.nodes.RayTracingWebservice:
+    derived_from: cloudlightning.nodes.CLContainer
+    tags:
+      icon: images/600px-Gnome-web-browser.svg.png
+    properties:
+      cpu_share:
+        type: float
+        required: true
+        default: 0.1
+      mem_share:
+        type: scalar-unit.size
+        required: true
+        default: 512 MB
+    capabilities:
+      WebUI_endpoint: cloudlightning.capabilities.endpoint.docker.WebUI
+      regiter_endpoint: cloudlightning.capabilities.endpoint.docker.RTRegisterEndpoint
+    attributes:
+      WebUi: {concat : ["http://", get_property : [SELF, WebUI_endpoint, ip_address], ":", get_property : [SELF, WebUI_endpoint, port]]}
+    requirements:
+      raytrace_engine: 
+        capability: cloudlightning.capabilities.endpoint.docker.RayTracing
+        relationship: tosca.relationships.ConnectsTo
+    interfaces:
+      Standard:
+        create:
+          inputs:
+            OPT_hostname : "raytracing_webservice.weave.local"
+            ENV_RT_ENGINE: { get_property: [REQ_TARGET, raytrace_engine, ip_address]}
+            ENV_RT_ENGINE_PORT: { get_property: [REQ_TARGET, raytrace_engine, port]}
+          implementation:
+            file: "adispataru/ray_tracing_app:2.2"
+            repository: docker
+            type: tosca.artifacts.Deployment.Image.Container.Docker
+
+
+capability_types:
+  cloudlightning.capabilities.CLService.RayTracingEngine:
+    derived_from: cloudlightning.capabilities.CLService
+  cloudlightning.capabilities.endpoint.docker.RayTracing:
+    derived_from: alien.capabilities.endpoint.Docker
+    description: >
+      Capability to connect to the Ray Tracing engine.
+    properties:
+      docker_bridge_port_mapping:
+        type: integer
+        description: Port used to bridge to the container's endpoint.
+        default: 0
+      port:
+        type: integer
+        default: 22
+  cloudlightning.capabilities.endpoint.docker.RTRegisterEndpoint:
+    derived_from: alien.capabilities.endpoint.Docker
+    description: >
+      Capability to register a Docker-based Ray Tracing engine.
+    properties:
+      docker_bridge_port_mapping:
+        type: integer
+        description: Port used to bridge to the container's endpoint.
+        default: 0
+      port:
+        type: integer
+        default: 9393
+  cloudlightning.capabilities.endpoint.docker.WebUI:
+    derived_from: alien.capabilities.endpoint.Docker
+    description: >
+      Capability to connect to a Docker-supported Mongo database through bridge networking.
+    properties:
+      docker_bridge_port_mapping:
+        type: integer
+        description: Port used to bridge to the container's endpoint.
+        default: 0
+      port:
+        type: integer
+        default: 3005
+
+  

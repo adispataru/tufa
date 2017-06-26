@@ -1,0 +1,241 @@
+tosca_definitions_version: alien_dsl_1_2_0
+description: TOSCA CloudLightning Root Type
+template_name: cl-normative-types
+template_version: 0.1.0-SNAPSHOT
+template_author: AdrianSpataru
+
+
+imports:
+  - "tosca-normative-types:1.0.0-SNAPSHOT"
+  - "docker-types:1.2.0-SNAPSHOT"
+
+node_types:
+  cloudlightning.nodes.Root:
+    derived_from: tosca.nodes.Root
+    description: The Root Type
+    tags:
+      icon: images/cloudlightning_icon_circle.png
+
+  #compute nodes
+  
+  cloudlightning.nodes.Compute:
+    derived_from: tosca.nodes.Compute
+    description: Abstract CL compute type
+    tags:
+      icon: images/cloudlightning_compute.png
+    capabilities:
+      - host: tosca.capabilities.Container.CLResource
+      - accelerator: cloudlightning.capabilities.AcceleratorAttachment
+  
+  # cloudlightning.nodes.compute.ComputeMIC:
+  #   derived_from: tosca.nodes.Compute
+  #   description: Abstract CL compute type
+  #   tags:
+  #     icon: images/cloudlightning_compute_mic.png
+  #   capabilities:
+  #     - host: tosca.capabilities.Container.CLResource.MIC
+  #     - accelerator: cloudlightning.capabilities.MICAttachment
+
+  # cloudlightning.nodes.compute.ComputeGPU:
+  #   derived_from: tosca.nodes.Compute
+  #   description: Abstract CL compute type
+  #   tags:
+  #     icon: images/cloudlightning_compute_gpu.png
+  #   capabilities:
+  #     - host: tosca.capabilities.Container.CLResource.GPU
+  #     - accelerator: cloudlightning.capabilities.GPUAttachment
+  #service nodes
+
+  cloudlightning.nodes.CLService:
+    derived_from: tosca.nodes.SoftwareComponent
+    description: Abstract CL Software
+    abstract: true
+    tags:
+      icon: images/cloudlightning_software.png
+    capabilities:
+      - service: cloudlightning.capabilities.CLService
+    requirements:
+      - host:
+          capability: tosca.capabilities.Container.CLResource
+          relationship: tosca.relationships.HostedOn
+          occurrences: [0, 1]
+
+  cloudlightning.nodes.CLService.CPUSoftware:
+    derived_from: cloudlightning.nodes.CLService
+    description: CL software that requires a compute host, with implementation files
+    tags:
+      icon: images/cloudlightning_software.png
+    requirements:
+      - host:
+          capability: tosca.capabilities.Container.CLResource
+          relationship: tosca.relationships.HostedOn
+    interfaces:
+      Standard:
+        create: scripts/create.sh
+        start: 
+          description: Script for starting the service
+          implementation: scripts/start.sh
+        stop: scripts/stop.sh
+
+  cloudlightning.nodes.CLService.MICSoftware:
+    derived_from: cloudlightning.nodes.CLService
+    description: CL software that requires a compute host, with implementation files
+    tags:
+      icon: images/cloudlightning_software.png
+    requirements:
+      - accelerator: 
+          capability: cloudlightning.capabilities.AcceleratedByMIC
+          relationship: cloudlightning.relationships.AcceleratedByMIC
+
+  cloudlightning.nodes.CLContainer:
+    derived_from: tosca.nodes.Container.Application.DockerContainer
+    description: Abstract CL Docker Container
+    abstract: true
+    capabilities:
+      - service: cloudlightning.capabilities.CLService
+      - accelerator: cloudlightning.capabilities.AcceleratorAttachment
+    properties:
+      docker_force_pull_image:
+        type: boolean
+        required: true
+        default: false
+
+  #basic accelerators
+  cloudlightning.nodes.Accelerator:
+    derived_from: tosca.nodes.BlockStorage
+    description: The base Accelerator type
+    abstract: true
+    tags:
+      icon: /images/accelerator.png
+    capabilities:
+      accelerator: cloudlightning.capabilities.AcceleratedBy
+    properties:
+      size:
+        type: scalar-unit.size
+        description: >
+          The requested storage size (default unit is MB).
+          Note:
+          - Required when an existing volume (i.e., volume_id) is not available.
+          - If volume_id is provided, size is ignored.  Resize of existing volumes is not considered at this time.
+        required: false
+    requirements:
+      - attachment:
+          capability: cloudlightning.capabilities.AcceleratorAttachment
+          relationship: cloudlightning.relationships.MountAccelerator
+    
+
+  # cloudlightning.nodes.DockerAccelerator:
+  #   derived_from: cloudlightning.nodes.Accelerator
+  #   tags:
+  #     icon: /images/accelerator.png
+  #   properties:
+  #     volume_name:
+  #       type: string
+  #       description: Name of the volume.  If it does not exist, it is created implicitly. Otherwise, the existing volume is reused.
+  #       required: true
+  #     device:
+  #       type: string
+  #       required: false
+  #       default: ""
+  #   requirements:
+  #     - attach:
+  #         capability: cloudlightning.capabilities.AcceleratorAttachmentDocker
+  #         relationship: cloudlightning.relationships.MountDockerAccelerator
+
+  #concrete accelerators
+  cloudlightning.nodes.MIC:
+    derived_from: cloudlightning.nodes.Accelerator
+    tags:
+      icon: /images/mic.png
+    properties:
+      cores:
+        type: float
+        required: false
+        default: 1
+    capabilities:
+      accelerator: cloudlightning.capabilities.AcceleratedByMIC
+
+  cloudlightning.nodes.GPU:
+    derived_from: cloudlightning.nodes.Accelerator
+    tags:
+      icon: /images/gpu.png
+    properties:
+      cores:
+        type: float
+        required: false
+        default: 1
+    capabilities:
+      accelerator: cloudlightning.capabilities.AcceleratedByGPU
+
+
+capability_types:
+  tosca.capabilities.Container.CLResource:
+    derived_from: tosca.capabilities.Container
+    description: >
+      The capacity to host and run CL Software.
+  # tosca.capabilities.Container.CLResource.MIC:
+  #   derived_from: tosca.capabilities.Container.CLResource
+  #   description: >
+  #     The capacity to host and run CL Software with a MIC accelerator attached.
+  # tosca.capabilities.Container.CLResource.GPU:
+  #   derived_from: tosca.capabilities.Container.CLResource
+  #   description: >
+  #     The capacity to host and run CL Software with a GPU accelerator attached.
+  # tosca.capabilities.Container.CLResource.DFE:
+  #   derived_from: tosca.capabilities.Container.CLResource
+  #   description: >
+  #     The capacity to host and run CL Software with a DFE accelerator attached.
+  cloudlightning.capabilities.CLService:
+    derived_from: tosca.capabilities.Root
+    description: >
+      This capability is used to search for implementations of an abstract CloudLightning service
+      Extend this capability and add it to your abstract service, and subsequent implementations.
+  cloudlightning.capabilities.AcceleratorAttachment:
+    derived_from: tosca.capabilities.Attachment
+    description: >
+      Capability to attach Accelerator to a CLSoftware
+  # cloudlightning.capabilities.MICAttachment:
+  #   derived_from: cloudlightning.capabilities.AcceleratorAttachment
+  #   description: >
+  #     Capability to attach Accelerator to a CLSoftware
+  # cloudlightning.capabilities.GPUAttachment:
+  #   derived_from: cloudlightning.capabilities.AcceleratorAttachment
+  #   description: >
+  #     Capability to attach Accelerator to a CLSoftware
+  cloudlightning.capabilities.AcceleratedBy:
+    derived_from: tosca.capabilities.Root
+  cloudlightning.capabilities.AcceleratedByMIC: 
+    derived_from: cloudlightning.capabilities.AcceleratedBy
+  cloudlightning.capabilities.AcceleratedByGPU: 
+    derived_from: cloudlightning.capabilities.AcceleratedBy
+
+
+relationship_types:
+
+  cloudlightning.relationships.MountAccelerator:
+    derived_from: tosca.relationships.AttachTo
+    valid_target_types: [ cloudlightning.capabilities.AcceleratorAttachment ]
+    properties:
+      container_path:
+        type: string
+        required: true
+        description: Specifies where the volume is mounted inside the container.
+      host_path:
+        type: string
+        required: true
+        description: Specifies where the volume is mounted inside the host.
+      mode:
+        type: string
+        required: true
+        description: Specifies the mode in which the volume is mounted inside the container.
+        default: "RO"    
+
+  cloudlightning.relationships.AcceleratedBy:
+    derived_from: tosca.relationships.Root
+    valid_target_types: [ cloudlightning.capabilities.AcceleratedBy ]
+  cloudlightning.relationships.AcceleratedByMIC:
+    derived_from: cloudlightning.relationships.AcceleratedBy
+    valid_target_types: [ cloudlightning.capabilities.AcceleratedByMIC ]
+  cloudlightning.relationships.AcceleratedByGPU:
+    derived_from: cloudlightning.relationships.AcceleratedBy
+    valid_target_types: [ cloudlightning.capabilities.AcceleratedByGPU ]
