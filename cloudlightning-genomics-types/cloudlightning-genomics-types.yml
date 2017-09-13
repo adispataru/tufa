@@ -1,0 +1,73 @@
+tosca_definitions_version: alien_dsl_1_3_0
+description: TOSCA genomics Myers sequence alignment 2016
+template_name: cloudlightning-genomics-types
+template_version: 0.1.0-SNAPSHOT
+template_author: AdrianSpataru
+
+imports:
+  - "tosca-normative-types:1.0.0-SNAPSHOT"
+  - "cl-normative-types:1.0.0-SNAPSHOT"
+  - "docker-types:1.2.0-SNAPSHOT"
+
+
+node_types:
+  cloudlightning.nodes.meta.GenomicsEngine:
+    derived_from: cloudlightning.nodes.CLService
+    description: Abstract Genomics Sequence Alignment Node
+    abstract: true
+    capabilities:
+      service: cloudlightning.capabilities.CLService.GenomicsEngine
+      genomics_engine: tosca.capabilities.Endpoint
+
+  cloudlightning.nodes.GenomicsEngineSoftware:
+    derived_from: cloudlightning.nodes.CLService.CLSoftware
+    description: Genomics Sequence Alignment on vm/bare metal
+    capabilities:
+      service: cloudlightning.capabilities.CLService.GenomicsEngine
+      genomics_engine: tosca.capabilities.Endpoint
+
+  cloudlightning.nodes.GenomicsEngineContainer:
+    derived_from: cloudlightning.nodes.CLContainer
+    description: Genomics Sequence Alignment on Docker
+    capabilities:
+      service: cloudlightning.capabilities.CLService.GenomicsEngine
+      genomics_engine: cloudlightning.capabilities.endpoint.docker.GenomicsEngine
+
+  cloudlightning.nodes.DFEGenomicsEngineSoftware:
+    derived_from: cloudlightning.nodes.GenomicsEngineSoftware
+    requirements:
+      - accelerator: 
+          capability: cloudlightning.capabilities.AcceleratedByDFE
+          relationship: cloudlightning.relationships.AcceleratedByDFE
+
+  cloudlightning.nodes.DFEGenomicsEngineContainer:
+      derived_from: cloudlightning.nodes.GenomicsEngineContainer
+      requirements:
+        - accelerator:
+            capability: cloudlightning.capabilities.AcceleratedByDFE
+            relationship: cloudlightning.relationships.AcceleratedByDFE
+
+
+capability_types:
+  cloudlightning.capabilities.CLService.GenomicsEngine:
+    derived_from: cloudlightning.capabilities.CLService
+    properties:
+      num_cpu_threads:
+        type: integer
+        default: 16
+        required: false
+      input_file_location_reference_genome:
+        type: string
+        default: '/usr/lib/data/genome'
+      input_file_location_pattern_reads:
+        type: string
+        default: '/usr/lib/data/pattern'
+      output_file_location_result:
+        type: string
+        default: ''
+        required: false
+
+  cloudlightning.capabilities.endpoint.docker.GenomicsEngine:
+    derived_from: cloudlightning.capabilities.endpoint.docker.SSH
+
+

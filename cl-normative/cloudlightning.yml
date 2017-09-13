@@ -1,7 +1,7 @@
 tosca_definitions_version: alien_dsl_1_2_0
 description: TOSCA CloudLightning Root Type
 template_name: cl-normative-types
-template_version: 0.1.0-SNAPSHOT
+template_version: 1.0.0-SNAPSHOT
 template_author: AdrianSpataru
 
 
@@ -18,7 +18,7 @@ node_types:
 
   #compute nodes
   
-  cloudlightning.nodes.Compute:
+  cloudlightning.nodes.CLResource:
     derived_from: tosca.nodes.Compute
     description: Abstract CL compute type
     tags:
@@ -26,6 +26,20 @@ node_types:
     capabilities:
       - host: tosca.capabilities.Container.CLResource
       - accelerator: cloudlightning.capabilities.AcceleratorAttachment
+
+  cloudlightning.nodes.DockerHost:
+    derived_from: tosca.nodes.Container.Runtime
+    description: Abstract CL compute type
+    tags:
+      icon: images/docker.png
+    capabilities:
+      - host: tosca.capabilities.Container.Docker
+      - accelerator: cloudlightning.capabilities.AcceleratorAttachment
+    requirements:
+      - host:
+          capability: tosca.capabilities.Container.CLResource
+          relationship: tosca.relationships.HostedOn
+          occurrences: [0, 1]
   
   # cloudlightning.nodes.compute.ComputeMIC:
   #   derived_from: tosca.nodes.Compute
@@ -59,8 +73,12 @@ node_types:
           capability: tosca.capabilities.Container.CLResource
           relationship: tosca.relationships.HostedOn
           occurrences: [0, 1]
+      - accelerator: 
+          capability: cloudlightning.capabilities.AcceleratedBy
+          relationship: cloudlightning.relationships.AcceleratedBy
+          occurrences: [0, 1]
 
-  cloudlightning.nodes.CLService.CPUSoftware:
+  cloudlightning.nodes.CLService.CLSoftware:
     derived_from: cloudlightning.nodes.CLService
     description: CL software that requires a compute host, with implementation files
     tags:
@@ -78,7 +96,7 @@ node_types:
         stop: scripts/stop.sh
 
   cloudlightning.nodes.CLService.MICSoftware:
-    derived_from: cloudlightning.nodes.CLService
+    derived_from: cloudlightning.nodes.CLService.CLSoftware
     description: CL software that requires a compute host, with implementation files
     tags:
       icon: images/cloudlightning_software.png
@@ -87,37 +105,125 @@ node_types:
           capability: cloudlightning.capabilities.AcceleratedByMIC
           relationship: cloudlightning.relationships.AcceleratedByMIC
 
+  cloudlightning.nodes.CLService.GPUSoftware:
+    derived_from: cloudlightning.nodes.CLService.CLSoftware
+    description: CL software that requires a compute host, with implementation files
+    tags:
+      icon: images/cloudlightning_software.png
+    requirements:
+      - accelerator: 
+          capability: cloudlightning.capabilities.AcceleratedByGPU
+          relationship: cloudlightning.relationships.AcceleratedByGPU
+
+  cloudlightning.nodes.CLService.DFESoftware:
+    derived_from: cloudlightning.nodes.CLService.CLSoftware
+    description: CL software that requires a compute host, with implementation files
+    tags:
+      icon: images/cloudlightning_software.png
+    requirements:
+      - accelerator: 
+          capability: cloudlightning.capabilities.AcceleratedByDFE
+          relationship: cloudlightning.relationships.AcceleratedByDFE
+
   cloudlightning.nodes.CLContainer:
-    derived_from: tosca.nodes.Container.Application.DockerContainer
+    derived_from: cloudlightning.nodes.CLService
     description: Abstract CL Docker Container
     abstract: true
-    capabilities:
-      - service: cloudlightning.capabilities.CLService
-      - accelerator: cloudlightning.capabilities.AcceleratorAttachment
+    derived_from: tosca.nodes.Container.Application
+    description: >
+      The TOSCA Container Application Docker node represents an application running in a Docker container.
+      Properties defined in the node will be interpreted as the entrypoint's arguments.
+    tags:
+      icon: /images/docker.png
     properties:
-      docker_force_pull_image:
-        type: boolean
+      cpu_share:
+        type: float
         required: true
-        default: false
+        default: 1.0
+      mem_share:
+        type: scalar-unit.size
+        required: true
+        default: 128 MB
+        constraints:
+          - greater_or_equal: 0 MB
+      disk_share:
+        type: integer
+        required: false
+      docker_options:
+        type: map
+        required: false
+        entry_schema:
+          description: Arbitrary command-line options for the docker run command.
+          type: string
+      docker_run_args:
+        type: list
+        required: false
+        entry_schema:
+          description: Docker run arguments. Allows safe usage of Docker ENTRYPOINT statement in the Dockerfile.
+          type: string
+      docker_run_cmd:
+        type: string
+        required: false
+        description: Docker run command. Will override the Dockerfile CMD statement.
+      docker_env_vars:
+        type: map
+        required: false
+        entry_schema:
+          description: Environment variables for the Docker container.
+          type: string
+    attributes:
+      endpoint:
+        type: string
+        description: >
+          Reflects the external endpoint assigned to this container.
+    capabilities:
+      attach: alien.capabilities.DockerVolumeAttachment
+      scalable: tosca.capabilities.Scalable
+    requirements:
+      - host:
+          capability: tosca.capabilities.Container.Docker
+          relationship: tosca.relationships.HostedOn
+          occurrences: [0, 1]
+
+  cloudlightning.nodes.MICContainer:
+    derived_from: cloudlightning.nodes.CLContainer
+    description: Abstract CL Docker Container
+    # abstract: true
+    # capabilities:
+    #   - accelerator: cloudlightning.capabilities.MICAttachment
+    requirements:
+      - accelerator: 
+          capability: cloudlightning.capabilities.AcceleratedByMIC
+          relationship: cloudlightning.relationships.AcceleratedByMIC
+
+  cloudlightning.nodes.GPUContainer:
+    derived_from: cloudlightning.nodes.CLContainer
+    description: Abstract CL Docker Container
+    # abstract: true
+    # capabilities:
+    #   - accelerator: cloudlightning.capabilities.GPUAttachment
+    requirements:
+      - accelerator: 
+          capability: cloudlightning.capabilities.AcceleratedByGPU
+          relationship: cloudlightning.relationships.AcceleratedByGPU
+
+  cloudlightning.nodes.CLService.DFEContainer:
+    derived_from: cloudlightning.nodes.CLContainer
+    description: CL software that requires a compute host, with implementation files
+    requirements:
+      - accelerator: 
+          capability: cloudlightning.capabilities.AcceleratedByDFE
+          relationship: cloudlightning.relationships.AcceleratedByDFE
 
   #basic accelerators
   cloudlightning.nodes.Accelerator:
-    derived_from: tosca.nodes.BlockStorage
+    derived_from: tosca.nodes.Root
     description: The base Accelerator type
     abstract: true
     tags:
       icon: /images/accelerator.png
     capabilities:
       accelerator: cloudlightning.capabilities.AcceleratedBy
-    properties:
-      size:
-        type: scalar-unit.size
-        description: >
-          The requested storage size (default unit is MB).
-          Note:
-          - Required when an existing volume (i.e., volume_id) is not available.
-          - If volume_id is provided, size is ignored.  Resize of existing volumes is not considered at this time.
-        required: false
     requirements:
       - attachment:
           capability: cloudlightning.capabilities.AcceleratorAttachment
@@ -167,6 +273,32 @@ node_types:
     capabilities:
       accelerator: cloudlightning.capabilities.AcceleratedByGPU
 
+  cloudlightning.nodes.DFE:
+    derived_from: cloudlightning.nodes.Accelerator
+    tags:
+      icon: /images/dfe.png
+    properties:
+      dfe_model:
+        type: string
+        default: MAIA
+        constraints:
+          - valid_values: [MAIA, ISCA, VECTIS, CORIA]
+    capabilities:
+      accelerator: cloudlightning.capabilities.AcceleratedByDFE
+
+  cloudlightning.nodes.RemoteDFE:
+    derived_from: cloudlightning.nodes.DFE
+    properties:
+      dfes:
+        type: integer
+        description: number of DFEs required
+        default: 1
+        constraints:
+        - valid_values: [ 1, 2, 4, 8 ]
+    capabilities:
+      accelerator: cloudlightning.capabilities.AcceleratedByRemoteDFE
+
+
 
 capability_types:
   tosca.capabilities.Container.CLResource:
@@ -194,48 +326,88 @@ capability_types:
     derived_from: tosca.capabilities.Attachment
     description: >
       Capability to attach Accelerator to a CLSoftware
-  # cloudlightning.capabilities.MICAttachment:
-  #   derived_from: cloudlightning.capabilities.AcceleratorAttachment
-  #   description: >
-  #     Capability to attach Accelerator to a CLSoftware
-  # cloudlightning.capabilities.GPUAttachment:
-  #   derived_from: cloudlightning.capabilities.AcceleratorAttachment
-  #   description: >
-  #     Capability to attach Accelerator to a CLSoftware
+  cloudlightning.capabilities.MICAttachment:
+    derived_from: cloudlightning.capabilities.AcceleratorAttachment
+    description: >
+      Capability to attach Accelerator to a CLSoftware
+  cloudlightning.capabilities.GPUAttachment:
+    derived_from: cloudlightning.capabilities.AcceleratorAttachment
+    description: >
+      Capability to attach Accelerator to a CLSoftware
+  cloudlightning.capabilities.DFEAttachment:
+    derived_from: cloudlightning.capabilities.AcceleratorAttachment
+    description: >
+      Capability to attach Accelerator to a CLSoftware
   cloudlightning.capabilities.AcceleratedBy:
     derived_from: tosca.capabilities.Root
   cloudlightning.capabilities.AcceleratedByMIC: 
     derived_from: cloudlightning.capabilities.AcceleratedBy
   cloudlightning.capabilities.AcceleratedByGPU: 
     derived_from: cloudlightning.capabilities.AcceleratedBy
+  cloudlightning.capabilities.AcceleratedByDFE: 
+    derived_from: cloudlightning.capabilities.AcceleratedBy 
+  cloudlightning.capabilities.AcceleratedByRemoteDFE: 
+    derived_from: cloudlightning.capabilities.AcceleratedByDFE
+    properties:
+      ip:
+        type: string
+        description: Remote dfe cluster IP
+        
 
+
+  cloudlightning.capabilities.endpoint.Infiniband:
+    derived_from: tosca.capabilities.Endpoint
+  cloudlightning.capabilities.endpoint.docker.SSH:
+    derived_from: alien.capabilities.endpoint.Docker
+    description: >
+      Capability to connect to the Ray Tracing engine.
+    properties:
+      docker_bridge_port_mapping:
+        type: integer
+        description: Port used to bridge to the container's endpoint.
+        default: 0
+      port:
+        type: integer
+        default: 22
 
 relationship_types:
 
   cloudlightning.relationships.MountAccelerator:
     derived_from: tosca.relationships.AttachTo
     valid_target_types: [ cloudlightning.capabilities.AcceleratorAttachment ]
+
+  cloudlightning.relationships.AcceleratedBy:
+    derived_from: tosca.relationships.Root
+    valid_target_types: [ cloudlightning.capabilities.AcceleratedBy ]
+
+  cloudlightning.relationships.AcceleratedByMIC:
+    derived_from: cloudlightning.relationships.AcceleratedBy
+    valid_target_types: [ cloudlightning.capabilities.AcceleratedByMIC ]
     properties:
       container_path:
         type: string
         required: true
         description: Specifies where the volume is mounted inside the container.
+        default: '/sys/class/mic/mic0'
       host_path:
         type: string
         required: true
         description: Specifies where the volume is mounted inside the host.
+        default: '/sys/class/mic/mic0'
       mode:
         type: string
         required: true
         description: Specifies the mode in which the volume is mounted inside the container.
-        default: "RO"    
-
-  cloudlightning.relationships.AcceleratedBy:
-    derived_from: tosca.relationships.Root
-    valid_target_types: [ cloudlightning.capabilities.AcceleratedBy ]
-  cloudlightning.relationships.AcceleratedByMIC:
-    derived_from: cloudlightning.relationships.AcceleratedBy
-    valid_target_types: [ cloudlightning.capabilities.AcceleratedByMIC ]
+        default: "RO"
   cloudlightning.relationships.AcceleratedByGPU:
     derived_from: cloudlightning.relationships.AcceleratedBy
     valid_target_types: [ cloudlightning.capabilities.AcceleratedByGPU ]
+  cloudlightning.relationships.AcceleratedByDFE:
+    derived_from: cloudlightning.relationships.AcceleratedBy
+    valid_target_types: [ cloudlightning.capabilities.AcceleratedByDFE ]
+    properties:
+      ENV_SLIC_CONF:
+        type: string
+        required: false
+        description: SLIC configuration for remote DFE ACCESS
+      
