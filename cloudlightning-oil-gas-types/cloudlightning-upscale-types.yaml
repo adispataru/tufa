@@ -44,11 +44,11 @@ node_types:
       cpu_share:
         type: float
         required: true
-        default: 0.1
+        default: 4
       mem_share:
         type: scalar-unit.size
         required: true
-        default: 512 MB
+        default: 128 MB
     tags:
       icon: images/upscaling.png
     capabilities:
@@ -60,7 +60,7 @@ node_types:
           # inputs:
           #   OPT_hostname : "embree_renderer.weave.local"
           implementation:
-            file: "malikmk/upscaling-cpu:latest"
+            file: "malikmk/ong_cpu:latest"
             repository: docker
             type: tosca.artifacts.Deployment.Image.Container.Docker
 
@@ -99,10 +99,12 @@ node_types:
       Standard:
         create:
           inputs:
-            OPT_hostname : "embree_renderer.weave.local" # not inherited 
-            # CONSTRAINT_mic_CLUSTER: "available"
+            OPT_nvidia_device_1 : "/dev/nvidiactl"
+            OPT_nvidia_device_2 : "/dev/nvidia-uvm"
+            OPT_nvidia_device_3 : "/dev/nvidia-uvm-tools"
+            OPT_nvidia_device_4 : "/dev/nvidia0"
           implementation:
-            file: "malikmk/upscaling-gpu-petsc:latest"
+            file: "malikmk/ong_cuda:latest"
             repository: docker
             type: tosca.artifacts.Deployment.Image.Container.Docker
 

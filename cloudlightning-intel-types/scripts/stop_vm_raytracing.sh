@@ -1,0 +1,1 @@
+kill $(ps aux | grep '/usr/bin/supervisord' | awk '{print $2}')

@@ -9,6 +9,10 @@ imports:
   - "cl-normative-types:1.0.0-SNAPSHOT"
   - "docker-types:1.2.0-SNAPSHOT"
 
+repositories:
+  docker:
+    url: https://hub.docker.com/
+    type: http
 
 node_types:
   cloudlightning.nodes.meta.GenomicsEngine:
@@ -29,23 +33,71 @@ node_types:
   cloudlightning.nodes.GenomicsEngineContainer:
     derived_from: cloudlightning.nodes.CLContainer
     description: Genomics Sequence Alignment on Docker
+    properties:
+      cpu_share:
+        type: float
+        required: true
+        default: 2
+      mem_share:
+        type: scalar-unit.size
+        required: true
+        default: 20000 MB
+      # docker_run_cmd:
+      #   type: string
+      #   required: true
+      #   default: "/usr/src/genomics/bin/alignReads -I ./data/reference-genome/H.Sapiens.s16.dat -i ./data/pattern-reads/regions.prof -t 16 -w"
     capabilities:
       service: cloudlightning.capabilities.CLService.GenomicsEngine
       genomics_engine: cloudlightning.capabilities.endpoint.docker.GenomicsEngine
+    interfaces:
+      Standard:
+        create:
+          inputs:
+            OPT_ipc : "host"
+            OPT_net : "host"
+            OPT_pid : "host"
+          implementation:
+            file: "max-genomics-gateway"
+            repository: docker
+            type: tosca.artifacts.Deployment.Image.Container.Docker
 
-  cloudlightning.nodes.DFEGenomicsEngineSoftware:
-    derived_from: cloudlightning.nodes.GenomicsEngineSoftware
-    requirements:
-      - accelerator: 
-          capability: cloudlightning.capabilities.AcceleratedByDFE
-          relationship: cloudlightning.relationships.AcceleratedByDFE
+  # cloudlightning.nodes.DFEGenomicsEngineSoftware:
+  #   derived_from: cloudlightning.nodes.GenomicsEngineSoftware
+  #   requirements:
+  #     - accelerator: 
+  #         capability: cloudlightning.capabilities.AcceleratedByDFE
+  #         relationship: cloudlightning.relationships.AcceleratedByDFE
 
   cloudlightning.nodes.DFEGenomicsEngineContainer:
-      derived_from: cloudlightning.nodes.GenomicsEngineContainer
-      requirements:
-        - accelerator:
-            capability: cloudlightning.capabilities.AcceleratedByDFE
-            relationship: cloudlightning.relationships.AcceleratedByDFE
+    derived_from: cloudlightning.nodes.GenomicsEngineContainer
+    requirements:
+      - accelerator:
+          capability: cloudlightning.capabilities.AcceleratedByDFE
+          relationship: cloudlightning.relationships.AcceleratedByDFE
+    properties:
+      cpu_share:
+        type: float
+        required: true
+        default: 2
+      mem_share:
+        type: scalar-unit.size
+        required: true
+        default: 20000 MB
+      # docker_run_cmd:
+      #   type: string
+      #   required: true
+      #   default: "/usr/src/genomics/bin/alignReads -I ./data/reference-genome/H.Sapiens.s16.dat -i ./data/pattern-reads/regions.prof -t 16 -d 4 -w"
+    interfaces:
+      Standard:
+        create:
+          inputs:
+            OPT_ipc : "host"
+            OPT_net : "host"
+            OPT_pid : "host"
+          implementation:
+            file: "max-genomics-gateway"
+            repository: docker
+            type: tosca.artifacts.Deployment.Image.Container.Docker
 
 
 capability_types:

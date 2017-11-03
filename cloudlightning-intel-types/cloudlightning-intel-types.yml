@@ -128,6 +128,29 @@ node_types:
             repository: docker
             type: tosca.artifacts.Deployment.Image.Container.Docker
 
+  cloudlightning.nodes.RayTracingWebserviceSoftware:
+    derived_from: cloudlightning.nodes.CLService.CLSoftware
+    tags:
+      icon: images/600px-Gnome-web-browser.svg.png
+    capabilities:
+      service: cloudlightning.capabilities.CLService.RayTracingUI
+      WebUI_endpoint: cloudlightning.capabilities.endpoint.WebUI
+    attributes:
+      WebUi: {concat : ["http://", get_attribute : [SELF, host.address], ":", get_property : [SELF, WebUI_endpoint, port]]}
+    requirements:
+      raytrace_engine: 
+        capability: cloudlightning.capabilities.endpoint.docker.RayTracing
+        relationship: tosca.relationships.ConnectsTo
+    interfaces:
+      Standard:
+        create:
+          inputs:
+            RT_ENGINE: { get_property: [REQ_TARGET, raytrace_engine, ip_address]}
+            RT_ENGINE_PORT: { get_property: [REQ_TARGET, raytrace_engine, port]}
+          implementation: scripts/create_vm_raytracing.sh
+        stop:
+          implementation: scripts/stop_vm_raytracing.sh
+
 
 capability_types:
   cloudlightning.capabilities.CLService.RayTracingEngine:
@@ -160,5 +183,14 @@ capability_types:
       port:
         type: integer
         default: 3005
+  cloudlightning.capabilities.endpoint.WebUI:
+    derived_from: tosca.capabilities.Endpoint
+    description: >
+      Capability to connect to a Docker-supported Mongo database through bridge networking.
+    properties:
+      port:
+        type: integer
+        default: 3005
+
 
   

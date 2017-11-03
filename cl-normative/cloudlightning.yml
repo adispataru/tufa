@@ -228,6 +228,9 @@ node_types:
       - attachment:
           capability: cloudlightning.capabilities.AcceleratorAttachment
           relationship: cloudlightning.relationships.MountAccelerator
+
+  alien.nodes.marathon.Container:
+    derived_from: tosca.nodes.Container.Runtime
     
 
   # cloudlightning.nodes.DockerAccelerator:
@@ -402,6 +405,22 @@ relationship_types:
   cloudlightning.relationships.AcceleratedByGPU:
     derived_from: cloudlightning.relationships.AcceleratedBy
     valid_target_types: [ cloudlightning.capabilities.AcceleratedByGPU ]
+    properties:
+      container_path:
+        type: string
+        required: true
+        description: Specifies where the volume is mounted inside the container.
+        default: '/usr/local/nvidia'
+      host_path:
+        type: string
+        required: true
+        description: Specifies where the volume is mounted inside the host.
+        default: 'nvidia_driver_384.90'
+      mode:
+        type: string
+        required: true
+        description: Specifies the mode in which the volume is mounted inside the container.
+        default: "RO"
   cloudlightning.relationships.AcceleratedByDFE:
     derived_from: cloudlightning.relationships.AcceleratedBy
     valid_target_types: [ cloudlightning.capabilities.AcceleratedByDFE ]
