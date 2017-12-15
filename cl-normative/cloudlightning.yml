@@ -68,6 +68,11 @@ node_types:
       icon: images/cloudlightning_software.png
     capabilities:
       - service: cloudlightning.capabilities.CLService
+    properties:
+      performance:
+        type: float
+        required: true
+        default: 1.0
     requirements:
       - host:
           capability: tosca.capabilities.Container.CLResource
@@ -171,6 +176,10 @@ node_types:
         entry_schema:
           description: Environment variables for the Docker container.
           type: string
+      docker_force_pull_image:
+        type: boolean
+        required: true
+        default: true
     attributes:
       endpoint:
         type: string
@@ -286,18 +295,17 @@ node_types:
         default: MAIA
         constraints:
           - valid_values: [MAIA, ISCA, VECTIS, CORIA]
+      num_dfe:
+        type: integer
+        description: number of DFEs required
+        default: 1
+        constraints:
+          - valid_values: [ 1, 2, 4, 8 ]
     capabilities:
       accelerator: cloudlightning.capabilities.AcceleratedByDFE
 
   cloudlightning.nodes.RemoteDFE:
     derived_from: cloudlightning.nodes.DFE
-    properties:
-      dfes:
-        type: integer
-        description: number of DFEs required
-        default: 1
-        constraints:
-        - valid_values: [ 1, 2, 4, 8 ]
     capabilities:
       accelerator: cloudlightning.capabilities.AcceleratedByRemoteDFE
 
@@ -372,6 +380,18 @@ capability_types:
       port:
         type: integer
         default: 22
+  cloudlightning.capabilities.endpoint.DockerHOST:
+    derived_from: tosca.capabilities.Endpoint
+    description: >
+      Endpoint generic capability for a Docker container, allowing implementation
+      of Docker bridge networking.
+    properties:
+      port: 
+        type: integer
+        default: 22
+      name: 
+        type: string
+        default: "SSH_SERVER_PORT"
 
 relationship_types:
 
@@ -420,13 +440,24 @@ relationship_types:
         type: string
         required: true
         description: Specifies the mode in which the volume is mounted inside the container.
-        default: "RO"
+        default: "ro"
   cloudlightning.relationships.AcceleratedByDFE:
     derived_from: cloudlightning.relationships.AcceleratedBy
     valid_target_types: [ cloudlightning.capabilities.AcceleratedByDFE ]
     properties:
-      ENV_SLIC_CONF:
+      container_path:
         type: string
-        required: false
-        description: SLIC configuration for remote DFE ACCESS
+        required: true
+        description: Specifies where the volume is mounted inside the container.
+        default: '/home/maxeler/genomics/data'
+      host_path:
+        type: string
+        required: true
+        description: Specifies where the volume is mounted inside the host.
+        default: '/home/petar/Genomics-Docker/genomics/data'
+      mode:
+        type: string
+        required: true
+        description: Specifies the mode in which the volume is mounted inside the container.
+        default: "RW"
       

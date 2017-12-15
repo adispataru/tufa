@@ -24,22 +24,11 @@ node_types:
     capabilities:
       upscaling_engine: tosca.capabilities.Endpoint
       service: cloudlightning.capabilities.CLService.UpscaleEngine
-
-  # cloudlightning.nodes.meta.RayTracingUI:
-  #   abstract: true
-  #   derived_from: cloudlightning.nodes.CLService
-  #   tags:
-  #     icon: images/raytrace.png
-  #   description: Abstract RayTracing UI Node
-  #   capabilities:
-  #     service: cloudlightning.capabilities.CLService.RayTracingUI
-  #   requirements:
-  #     raytrace_engine: 
-  #       capability: tosca.capabilities.Endpoint
-  #       relationship: tosca.relationships.ConnectsTo
   
   cloudlightning.nodes.UpscaleEngineContainer:
     derived_from: cloudlightning.nodes.CLContainer
+    tags:
+      icon: images/upscaling_docker.png
     properties:
       cpu_share:
         type: float
@@ -49,39 +38,25 @@ node_types:
         type: scalar-unit.size
         required: true
         default: 128 MB
-    tags:
-      icon: images/upscaling.png
     capabilities:
       upscaling_engine: cloudlightning.capabilities.endpoint.docker.UpscaleEngine
       service: cloudlightning.capabilities.CLService.UpscaleEngine
+    attributes:
+      SSH: {concat : ["ssh -p ", get_property : [SELF, upscaling_engine, port], " root@", get_property : [SELF, upscaling_engine, ip_address]]}
+      command: {concat : ["export LC_ALL=en_US",  " && ", "./build/bin/upscale_relperm --points 7 ./UpscalingDataSets/small_model.grdecl ./UpscalingDataSets/small_rock.txt"]}
     interfaces:
       Standard:
         create:
-          # inputs:
-          #   OPT_hostname : "embree_renderer.weave.local"
           implementation:
             file: "malikmk/ong_cpu:latest"
             repository: docker
             type: tosca.artifacts.Deployment.Image.Container.Docker
 
-  cloudlightning.nodes.UpscaleEngine:
-    derived_from: cloudlightning.nodes.CLService.CLSoftware
-    capabilities:
-      upscaling_engine: tosca.capabilities.Endpoint
-      service: cloudlightning.capabilities.CLService.UpscaleEngine
-    tags:
-      icon: images/upscaling.png
-    interfaces:
-      Standard:
-        start: scripts/start_cpu_upscaling.sh
-        create: scripts/create_cpu_upscaling.sh
-        stop: scripts/stop_cpu_upscaling.sh
-
 
   cloudlightning.nodes.GPUUpscaleEngine:
     derived_from: cloudlightning.nodes.GPUContainer
     tags:
-      icon: images/upscaling.png
+      icon: images/upscaling_nvidia_docker.png
     description: PETSc based gpu acceleration using nvidia-docker run.
     properties:
       cpu_share:
@@ -95,6 +70,9 @@ node_types:
     capabilities:
       upscaling_engine: cloudlightning.capabilities.endpoint.docker.UpscaleEngine
       service: cloudlightning.capabilities.CLService.UpscaleEngine
+    attributes:
+      SSH: {concat : ["ssh -p ", get_property : [SELF, upscaling_engine, port], " root@", get_property : [SELF, upscaling_engine, ip_address]]}
+      command: {concat : ["export LC_ALL=en_US",  " && ", "./build/bin/upscale_relperm --points 7 ./UpscalingDataSets/small_model.grdecl ./UpscalingDataSets/small_rock.txt"]}
     interfaces:
       Standard:
         create:
@@ -109,71 +87,14 @@ node_types:
             type: tosca.artifacts.Deployment.Image.Container.Docker
 
 
-  # cloudlightning.nodes.RayTracingWebservice:
-  #   derived_from: cloudlightning.nodes.CLContainer
-  #   tags:
-  #     icon: images/600px-Gnome-web-browser.svg.png
-  #   properties:
-  #     cpu_share:
-  #       type: float
-  #       required: true
-  #       default: 0.1
-  #     mem_share:
-  #       type: scalar-unit.size
-  #       required: true
-  #       default: 512 MB
-  #   capabilities:
-  #     service: cloudlightning.capabilities.CLService.RayTracingUI
-  #     WebUI_endpoint: cloudlightning.capabilities.endpoint.docker.WebUI
-  #   attributes:
-  #     WebUi: {concat : ["http://", get_property : [SELF, WebUI_endpoint, ip_address], ":", get_property : [SELF, WebUI_endpoint, port]]}
-  #   requirements:
-  #     raytrace_engine: 
-  #       capability: cloudlightning.capabilities.endpoint.docker.RayTracing
-  #       relationship: tosca.relationships.ConnectsTo
-  #   interfaces:
-  #     Standard:
-  #       create:
-  #         inputs:
-  #           OPT_hostname : "raytracing_webservice.weave.local"
-  #           ENV_RT_ENGINE: { get_property: [REQ_TARGET, raytrace_engine, ip_address]}
-  #           ENV_RT_ENGINE_PORT: { get_property: [REQ_TARGET, raytrace_engine, port]}
-  #         implementation:
-  #           file: "adispataru/ray_tracing_app:2.2"
-  #           repository: docker
-  #           type: tosca.artifacts.Deployment.Image.Container.Docker
-
 
 capability_types:
   cloudlightning.capabilities.CLService.UpscaleEngine:
     derived_from: cloudlightning.capabilities.CLService
-  # cloudlightning.capabilities.CLService.RayTracingUI:
-  #   derived_from: cloudlightning.capabilities.CLService
   cloudlightning.capabilities.endpoint.docker.UpscaleEngine:
     derived_from: cloudlightning.capabilities.endpoint.docker.SSH
-  # cloudlightning.capabilities.endpoint.docker.RTRegisterEndpoint:
-  #   derived_from: alien.capabilities.endpoint.Docker
-  #   description: >
-  #     Capability to register a Docker-based Ray Tracing engine.
-  #   properties:
-  #     docker_bridge_port_mapping:
-  #       type: integer
-  #       description: Port used to bridge to the container's endpoint.
-  #       default: 0
-  #     port:
-  #       type: integer
-  #       default: 9393
-  # cloudlightning.capabilities.endpoint.docker.WebUI:
-  #   derived_from: alien.capabilities.endpoint.Docker
-  #   description: >
-  #     Capability to connect to a Docker-supported Mongo database through bridge networking.
-  #   properties:
-  #     docker_bridge_port_mapping:
-  #       type: integer
-  #       description: Port used to bridge to the container's endpoint.
-  #       default: 0
-  #     port:
-  #       type: integer
-  #       default: 3005
-
-  # 
+    properties:
+      docker_bridge_port_mapping:
+        type: integer
+        description: Port used to bridge to the container's endpoint.
+        default: 31001

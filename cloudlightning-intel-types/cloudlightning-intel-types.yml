@@ -29,7 +29,7 @@ node_types:
     abstract: true
     derived_from: cloudlightning.nodes.CLService
     tags:
-      icon: images/raytrace.png
+      icon: images/raytrace_ui.png
     description: Abstract RayTracing UI Node
     capabilities:
       service: cloudlightning.capabilities.CLService.RayTracingUI
@@ -97,7 +97,7 @@ node_types:
   cloudlightning.nodes.RayTracingWebservice:
     derived_from: cloudlightning.nodes.CLContainer
     tags:
-      icon: images/600px-Gnome-web-browser.svg.png
+      icon: images/raytrace_ui_docker.png
     properties:
       cpu_share:
         type: float
@@ -131,7 +131,7 @@ node_types:
   cloudlightning.nodes.RayTracingWebserviceSoftware:
     derived_from: cloudlightning.nodes.CLService.CLSoftware
     tags:
-      icon: images/600px-Gnome-web-browser.svg.png
+      icon: images/raytrace_ui.png
     capabilities:
       service: cloudlightning.capabilities.CLService.RayTracingUI
       WebUI_endpoint: cloudlightning.capabilities.endpoint.WebUI
@@ -159,6 +159,11 @@ capability_types:
     derived_from: cloudlightning.capabilities.CLService
   cloudlightning.capabilities.endpoint.docker.RayTracing:
     derived_from: cloudlightning.capabilities.endpoint.docker.SSH
+    properties:
+      docker_bridge_port_mapping:
+        type: integer
+        description: Port used to bridge to the container's endpoint.
+        default: 31009
   cloudlightning.capabilities.endpoint.docker.RTRegisterEndpoint:
     derived_from: alien.capabilities.endpoint.Docker
     description: >

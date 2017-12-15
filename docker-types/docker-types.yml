@@ -74,19 +74,10 @@ node_types:
           capability: tosca.capabilities.Container.Docker
           relationship: tosca.relationships.HostedOn
           occurrences: [0, 1]
-  alien.nodes.DockerExtVolume:
+  alien.nodes.DockerVolume:
     derived_from: tosca.nodes.BlockStorage
     tags:
       icon: /images/volume.png
-    properties:
-      volume_name:
-        type: string
-        description: Name of the volume.  If it does not exist, it is created implicitly. Otherwise, the existing volume is reused.
-        required: true
-      device:
-        type: string
-        required: false
-        default: ""
     requirements:
       attachment:
         capability: alien.capabilities.DockerVolumeAttachment
@@ -119,6 +110,10 @@ relationship_types:
     valid_target_types: [ alien.capabilities.DockerVolumeAttachment ]
     properties:
       container_path:
+        type: string
+        required: true
+        description: Specifies where the volume is mounted inside the container.
+      host_path:
         type: string
         required: true
         description: Specifies where the volume is mounted inside the container.

@@ -1,7 +1,7 @@
 tosca_definitions_version: alien_dsl_1_3_0
 description: TOSCA genomics Myers sequence alignment 2016
 template_name: cloudlightning-genomics-types
-template_version: 0.1.0-SNAPSHOT
+template_version: 1.0.0-SNAPSHOT
 template_author: AdrianSpataru
 
 imports:
@@ -18,44 +18,55 @@ node_types:
   cloudlightning.nodes.meta.GenomicsEngine:
     derived_from: cloudlightning.nodes.CLService
     description: Abstract Genomics Sequence Alignment Node
+    tags:
+      icon: images/genomics.png
     abstract: true
     capabilities:
       service: cloudlightning.capabilities.CLService.GenomicsEngine
       genomics_engine: tosca.capabilities.Endpoint
 
-  cloudlightning.nodes.GenomicsEngineSoftware:
-    derived_from: cloudlightning.nodes.CLService.CLSoftware
-    description: Genomics Sequence Alignment on vm/bare metal
-    capabilities:
-      service: cloudlightning.capabilities.CLService.GenomicsEngine
-      genomics_engine: tosca.capabilities.Endpoint
+  # cloudlightning.nodes.GenomicsEngineSoftware:
+  #   derived_from: cloudlightning.nodes.CLService.CLSoftware
+  #   description: Genomics Sequence Alignment on vm/bare metal
+  #   capabilities:
+  #     service: cloudlightning.capabilities.CLService.GenomicsEngine
+  #     genomics_engine: tosca.capabilities.Endpoint
 
   cloudlightning.nodes.GenomicsEngineContainer:
     derived_from: cloudlightning.nodes.CLContainer
     description: Genomics Sequence Alignment on Docker
+    tags:
+      icon: images/genomics_docker.png
     properties:
       cpu_share:
         type: float
         required: true
-        default: 2
+        default: 8
       mem_share:
         type: scalar-unit.size
         required: true
         default: 20000 MB
-      # docker_run_cmd:
-      #   type: string
-      #   required: true
-      #   default: "/usr/src/genomics/bin/alignReads -I ./data/reference-genome/H.Sapiens.s16.dat -i ./data/pattern-reads/regions.prof -t 16 -w"
+      docker_force_pull_image:
+        type: boolean
+        required: true
+        default: false
+      performance: 
+        type: float
+        required: true
+        default: 1.0
     capabilities:
       service: cloudlightning.capabilities.CLService.GenomicsEngine
-      genomics_engine: cloudlightning.capabilities.endpoint.docker.GenomicsEngine
+      genomics_engine: cloudlightning.capabilities.endpoint.docker.SSH.GenomicsEngine
+    attributes:
+      SSH: {concat : ["ssh -p ", get_property : [SELF, genomics_engine, port], " maxeler@", get_property : [SELF, genomics_engine, ip_address]]}
+      command: {concat : ["./genomics/bin/alignReads -I " , get_property : [SELF, service, reference_genome],  " -i " , get_property : [SELF, service, pattern_reads], " -t ",  get_property : [SELF, service, num_cpu_threads], " -w"]}
     interfaces:
       Standard:
         create:
           inputs:
             OPT_ipc : "host"
-            OPT_net : "host"
             OPT_pid : "host"
+            ENV_SSH_SERVER_PORT: {get_property : [SELF, genomics_engine, port]}
           implementation:
             file: "max-genomics-gateway"
             repository: docker
@@ -70,23 +81,30 @@ node_types:
 
   cloudlightning.nodes.DFEGenomicsEngineContainer:
     derived_from: cloudlightning.nodes.GenomicsEngineContainer
+    tags:
+      icon: images/genomics_dfe_docker.png
     requirements:
       - accelerator:
           capability: cloudlightning.capabilities.AcceleratedByDFE
           relationship: cloudlightning.relationships.AcceleratedByDFE
+    capabilities:
+      genomics_engine: cloudlightning.capabilities.endpoint.DockerHOST.GenomicsEngineHOST
     properties:
       cpu_share:
         type: float
         required: true
-        default: 2
+        default: 8
       mem_share:
         type: scalar-unit.size
         required: true
         default: 20000 MB
-      # docker_run_cmd:
-      #   type: string
-      #   required: true
-      #   default: "/usr/src/genomics/bin/alignReads -I ./data/reference-genome/H.Sapiens.s16.dat -i ./data/pattern-reads/regions.prof -t 16 -d 4 -w"
+      performance: 
+        type: float
+        required: true
+        default: 8.78
+    attributes:
+      SSH: {concat : ["ssh -p ", get_property : [SELF, genomics_engine, port], " maxeler@", get_property : [SELF, genomics_engine, ip_address]]}
+      command: {concat : ["./genomics/bin/alignReads -I " , get_property : [SELF, service, reference_genome],  " -i " , get_property : [SELF, service, pattern_reads], " -t ",  get_property : [SELF, service, num_cpu_threads], " -d ", get_property : [REQ_TARGET, accelerator, num_dfe],  " -w"]}
     interfaces:
       Standard:
         create:
@@ -106,20 +124,36 @@ capability_types:
     properties:
       num_cpu_threads:
         type: integer
-        default: 16
+        default: 8
         required: false
-      input_file_location_reference_genome:
+      reference_genome:
         type: string
-        default: '/usr/lib/data/genome'
-      input_file_location_pattern_reads:
+        default: './genomics/data/reference-genome/H.Sapiens.s16.dat'
+      pattern_reads:
         type: string
-        default: '/usr/lib/data/pattern'
+        default: './genomics/data/pattern-reads/regions.prof'
       output_file_location_result:
         type: string
         default: ''
         required: false
 
-  cloudlightning.capabilities.endpoint.docker.GenomicsEngine:
+  cloudlightning.capabilities.endpoint.docker.SSH.GenomicsEngine:
     derived_from: cloudlightning.capabilities.endpoint.docker.SSH
-
+    properties:
+      port: 
+        type: integer
+        default: 2222
+      docker_bridge_port_mapping:
+          type: integer
+          description: Port used to bridge to the container's endpoint.
+          default: 31010
+  cloudlightning.capabilities.endpoint.DockerHOST.GenomicsEngineHOST:
+    derived_from: cloudlightning.capabilities.endpoint.DockerHOST
+    properties:
+      port: 
+        type: integer
+        default: 2222
+      name: 
+        type: string
+        default: "SSH_SERVER_PORT"
 
