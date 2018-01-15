@@ -51,10 +51,6 @@ node_types:
         type: boolean
         required: true
         default: false
-      num_dfe:
-        type: integer
-        required: true
-        default: 1
     capabilities:
       service: cloudlightning.capabilities.CLService.GenomicsEngine
       genomics_engine: cloudlightning.capabilities.endpoint.docker.SSH.GenomicsEngine
@@ -100,6 +96,10 @@ node_types:
         type: scalar-unit.size
         required: true
         default: 20000 MB
+      num_dfe:
+        type: integer
+        required: true
+        default: 1
     attributes:
       SSH: {concat : ["ssh -p ", get_property : [SELF, genomics_engine, port], " maxeler@", get_property : [SELF, genomics_engine, ip_address]]}
       command: {concat : ["./genomics/bin/alignReads -I " , get_property : [SELF, service, reference_genome],  " -i " , get_property : [SELF, service, pattern_reads], " -t ",  get_property : [SELF, service, num_cpu_threads], " -d ", get_property : [REQ_TARGET, accelerator, num_dfe],  " -w"]}
