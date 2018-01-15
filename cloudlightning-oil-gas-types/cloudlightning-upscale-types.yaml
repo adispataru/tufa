@@ -29,6 +29,7 @@ node_types:
     derived_from: cloudlightning.nodes.CLContainer
     tags:
       icon: images/upscaling_docker.png
+      performance: 1.0
     properties:
       cpu_share:
         type: float
@@ -57,6 +58,7 @@ node_types:
     derived_from: cloudlightning.nodes.GPUContainer
     tags:
       icon: images/upscaling_nvidia_docker.png
+      performance: 1.05
     description: PETSc based gpu acceleration using nvidia-docker run.
     properties:
       cpu_share:

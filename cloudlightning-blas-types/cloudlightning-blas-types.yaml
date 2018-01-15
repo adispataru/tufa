@@ -30,6 +30,7 @@ node_types:
     derived_from: cloudlightning.nodes.GPUContainer
     tags:
       icon: images/matrix-nvidia.png
+      performance: 4.0
     description: PETSc based gpu acceleration using nvidia-docker run.
     properties:
       cpu_share:
@@ -67,6 +68,7 @@ node_types:
     derived_from: cloudlightning.nodes.CLContainer
     tags:
       icon: images/matrix.png
+      performance: 1.0
     description: PETSc based gpu acceleration using nvidia-docker run.
     properties:
       cpu_share:
@@ -99,6 +101,7 @@ node_types:
     derived_from: cloudlightning.nodes.CLService.GPUSoftware
     tags:
       icon: images/matrix-nvidia.png
+      performance: 3.5
     description: PETSc based gpu acceleration using nvidia-docker run.
     properties:
       cpu_share:

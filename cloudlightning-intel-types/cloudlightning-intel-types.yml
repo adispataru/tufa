@@ -40,6 +40,9 @@ node_types:
   
   cloudlightning.nodes.SimpleRayTracingEngine:
     derived_from: cloudlightning.nodes.CLContainer
+    tags:
+      icon: images/raytrace_intel.png
+      performance: 1.0
     properties:
       cpu_share:
         type: float
@@ -49,8 +52,6 @@ node_types:
         type: scalar-unit.size
         required: true
         default: 512 MB
-    tags:
-      icon: images/raytrace_intel.png
     capabilities:
       raytrace_engine: cloudlightning.capabilities.endpoint.docker.RayTracing
       service: cloudlightning.capabilities.CLService.RayTracingEngine
@@ -68,6 +69,7 @@ node_types:
     derived_from: cloudlightning.nodes.MICContainer
     tags:
       icon: images/raytrace_intel_phi.png
+      performance: 4.0
     description: Embree based RayTracing Node With Intel Phi Acceleration
     properties:
       cpu_share:
@@ -98,6 +100,7 @@ node_types:
     derived_from: cloudlightning.nodes.CLContainer
     tags:
       icon: images/raytrace_ui_docker.png
+      performance: 1.0
     properties:
       cpu_share:
         type: float
@@ -132,6 +135,7 @@ node_types:
     derived_from: cloudlightning.nodes.CLService.CLSoftware
     tags:
       icon: images/raytrace_ui.png
+      performance: 1.0
     capabilities:
       service: cloudlightning.capabilities.CLService.RayTracingUI
       WebUI_endpoint: cloudlightning.capabilities.endpoint.WebUI
