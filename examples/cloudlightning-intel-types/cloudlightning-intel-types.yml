@@ -1,13 +1,12 @@
-tosca_definitions_version: alien_dsl_1_3_0
-description: TOSCA Demo 2016
+tosca_definitions_version: alien_dsl_2_0_0
+description: TUFA Demo 2022
 template_name: cloudlightning-intel-types
 template_version: 1.0.0-SNAPSHOT
 template_author: AdrianSpataru
 
 imports:
-  - "tosca-normative-types:1.0.0-SNAPSHOT"
-  - "cl-normative-types:1.0.0-SNAPSHOT"
-  - "docker-types:1.2.0-SNAPSHOT"
+  - "tosca-normative-types:1.0.0-ALIEN20"
+  - "tufa-normative-types:1.0.0-SNAPSHOT"
 
 repositories:
   docker:
@@ -17,7 +16,7 @@ repositories:
 node_types:    
   cloudlightning.nodes.meta.RayTracingEngine:
     abstract: true
-    derived_from: cloudlightning.nodes.CLService
+    derived_from: tufa.nodes.Service
     tags:
       icon: images/raytrace.png
     description: Abstract RayTracing Node
@@ -27,7 +26,7 @@ node_types:
 
   cloudlightning.nodes.meta.RayTracingUI:
     abstract: true
-    derived_from: cloudlightning.nodes.CLService
+    derived_from: tufa.nodes.Service
     tags:
       icon: images/raytrace_ui.png
     description: Abstract RayTracing UI Node
@@ -39,7 +38,7 @@ node_types:
         relationship: tosca.relationships.ConnectsTo
   
   cloudlightning.nodes.SimpleRayTracingEngine:
-    derived_from: cloudlightning.nodes.CLContainer
+    derived_from: tufa.nodes.Container
     tags:
       icon: images/raytrace_intel.png
       performance: 1.0
@@ -63,10 +62,10 @@ node_types:
           implementation:
             file: "pkudaiyar/ray_tracing_app_embree:1"
             repository: docker
-            type: tosca.artifacts.Deployment.Image.Container.Docker
+            type: tufa.art.Deployment.Image.Container
 
   cloudlightning.nodes.PhiRayTracingEngine:
-    derived_from: cloudlightning.nodes.MICContainer
+    derived_from: tufa.nodes.MICContainer
     tags:
       icon: images/raytrace_intel_phi.png
       performance: 4.0
@@ -93,11 +92,11 @@ node_types:
           implementation:
             file: "pkudaiyar/ray_tracing_app_embree:1"
             repository: docker
-            type: tosca.artifacts.Deployment.Image.Container.Docker
+            type: tufa.art.Deployment.Image.Container
 
 
   cloudlightning.nodes.RayTracingWebservice:
-    derived_from: cloudlightning.nodes.CLContainer
+    derived_from: tufa.nodes.Container
     tags:
       icon: images/raytrace_ui_docker.png
       performance: 1.0
@@ -129,10 +128,10 @@ node_types:
           implementation:
             file: "adispataru/ray_tracing_app:2.2"
             repository: docker
-            type: tosca.artifacts.Deployment.Image.Container.Docker
+            type: tufa.art.Deployment.Image.Container
 
   cloudlightning.nodes.RayTracingWebserviceSoftware:
-    derived_from: cloudlightning.nodes.CLService.CLSoftware
+    derived_from: tufa.nodes.Software
     tags:
       icon: images/raytrace_ui.png
       performance: 1.0
@@ -158,18 +157,18 @@ node_types:
 
 capability_types:
   cloudlightning.capabilities.CLService.RayTracingEngine:
-    derived_from: cloudlightning.capabilities.CLService
+    derived_from: tufa.cap.Service
   cloudlightning.capabilities.CLService.RayTracingUI:
-    derived_from: cloudlightning.capabilities.CLService
+    derived_from: tufa.cap.Service
   cloudlightning.capabilities.endpoint.docker.RayTracing:
-    derived_from: cloudlightning.capabilities.endpoint.docker.SSH
+    derived_from: tufa.cap.Endpoint.Docker.SSH
     properties:
       docker_bridge_port_mapping:
         type: integer
         description: Port used to bridge to the container's endpoint.
         default: 31009
   cloudlightning.capabilities.endpoint.docker.RTRegisterEndpoint:
-    derived_from: alien.capabilities.endpoint.Docker
+    derived_from: tufa.cap.Endpoint.Docker
     description: >
       Capability to register a Docker-based Ray Tracing engine.
     properties:
@@ -181,7 +180,7 @@ capability_types:
         type: integer
         default: 9393
   cloudlightning.capabilities.endpoint.docker.WebUI:
-    derived_from: alien.capabilities.endpoint.Docker
+    derived_from: tufa.cap.Endpoint.Docker
     description: >
       Capability to connect to a Docker-supported Mongo database through bridge networking.
     properties:
