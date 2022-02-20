@@ -322,6 +322,19 @@ capability_types:
         type: integer
         default: 22
 
+  tufa.cap.Endpoint.Docker.HOST:
+    derived_from: tosca.capabilities.Endpoint
+    description: >
+      Endpoint generic capability for a Docker container, allowing implementation
+      of Docker host networking.
+    properties:
+      port: 
+        type: integer
+        default: 22
+      name: 
+        type: string
+        default: "SSH_SERVER_PORT"
+
   tufa.cap.Service:
     derived_from: tosca.capabilities.Root
     description: >
