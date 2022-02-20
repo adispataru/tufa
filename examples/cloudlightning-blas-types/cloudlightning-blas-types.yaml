@@ -1,13 +1,12 @@
-tosca_definitions_version: alien_dsl_1_3_0
-description: TOSCA Demo 2016
+tosca_definitions_version: alien_dsl_2_0_0
+description: TUFA Demo 2022
 template_name: cloudlightning-blas-types
 template_version: 1.0.0-SNAPSHOT
 template_author: AdrianSpataru
 
 imports:
-  - "tosca-normative-types:1.0.0-SNAPSHOT"
-  - "cl-normative-types:1.0.0-SNAPSHOT"
-  - "docker-types:1.2.0-SNAPSHOT"
+  - "tosca-normative-types:1.0.0-ALIEN20"
+  - "tufa-normative-types:1.0.0-SNAPSHOT"
 
 repositories:
   docker:
@@ -17,17 +16,17 @@ repositories:
 node_types:    
   cloudlightning.nodes.meta.BLASEngine:
     abstract: true
-    derived_from: cloudlightning.nodes.CLService
+    derived_from: tufa.nodes.Service
     tags:
       icon: images/matrix.png
-    description: Abstract Upscale Node
+    description: Abstract BLAS Node
     capabilities:
       upscaling_engine: tosca.capabilities.Endpoint
-      service: cloudlightning.capabilities.CLService.NumericalEngine
+      service: cloudlightning.capabilities.Service.BLASEngine
   
 
   cloudlightning.nodes.CUBLASContainer:
-    derived_from: cloudlightning.nodes.GPUContainer
+    derived_from: tufa.nodes.GPUContainer
     tags:
       icon: images/matrix-nvidia.png
       performance: 4.0
@@ -47,7 +46,7 @@ node_types:
         default: false
     capabilities:
       upscaling_engine: cloudlightning.capabilities.endpoint.docker.NumericalEngine
-      service: cloudlightning.capabilities.CLService.NumericalEngine
+      service: cloudlightning.capabilities.Service.BLASEngine
     attributes:
       SSH: {concat : ["ssh -p ", get_property : [SELF, upscaling_engine, port], " root@", get_property : [SELF, upscaling_engine, ip_address]]}
       command: {concat : ["export LC_ALL=en_US",  " && ", "/usr/local/cuda-7.0/samples/0_Simple/matrixMulCUBLAS/matrixMulCUBLAS sizemult=200"]}
@@ -62,10 +61,10 @@ node_types:
           implementation:
             file: "sample:matrixMulCUBLAS"
             repository: docker
-            type: tosca.artifacts.Deployment.Image.Container.Docker
+            type: tufa.art.Deployment.Image.Container
 
   cloudlightning.nodes.OpenBLASContainer:
-    derived_from: cloudlightning.nodes.CLContainer
+    derived_from: tufa.nodes.Container
     tags:
       icon: images/matrix.png
       performance: 1.0
@@ -85,7 +84,7 @@ node_types:
         default: false
     capabilities:
       upscaling_engine: cloudlightning.capabilities.endpoint.docker.NumericalEngine
-      service: cloudlightning.capabilities.CLService.NumericalEngine
+      service: cloudlightning.capabilities.Service.BLASEngine
     attributes:
       SSH: {concat : ["ssh -p ", get_property : [SELF, upscaling_engine, port], " root@", get_property : [SELF, upscaling_engine, ip_address]]}
       command: {concat : ["export LC_ALL=en_US",  " && ", "/home/Code/libraries_uc4/BareMetal_UC4/GEMM_OpenBLAS​/testSGEMM_OpenBLAS 16768 16768 16768"]}
@@ -95,10 +94,10 @@ node_types:
           implementation:
             file: "sample:matrixMulOpenBLAS"
             repository: docker
-            type: tosca.artifacts.Deployment.Image.Container.Docker
+            type: tufa.art.Deployment.Image.Container
 
   cloudlightning.nodes.GPUBLASEngine:
-    derived_from: cloudlightning.nodes.CLService.GPUSoftware
+    derived_from: tufa.nodes.Service.GPUSoftware
     tags:
       icon: images/matrix-nvidia.png
       performance: 3.5
@@ -118,7 +117,7 @@ node_types:
         default: false
     capabilities:
       upscaling_engine: cloudlightning.capabilities.endpoint.docker.NumericalEngine
-      service: cloudlightning.capabilities.CLService.NumericalEngine
+      service: cloudlightning.capabilities.Service.BLASEngine
     attributes:
       SSH: {concat : ["ssh -p ", get_property : [SELF, upscaling_engine, port], " root@", get_property : [SELF, upscaling_engine, ip_address]]}
       command: {concat : ["export LC_ALL=en_US",  " && ", "./matrixMulCUBLAS 1024 1024 1024"]}
@@ -131,10 +130,10 @@ node_types:
 
 
 capability_types:
-  cloudlightning.capabilities.CLService.NumericalEngine:
-    derived_from: cloudlightning.capabilities.CLService
+  cloudlightning.capabilities.Service.BLASEngine:
+    derived_from: tufa.cap.Service
   cloudlightning.capabilities.endpoint.docker.NumericalEngine:
-    derived_from: cloudlightning.capabilities.endpoint.docker.SSH
+    derived_from: tufa.cap.Endpoint.Docker.SSH
     properties:
       docker_bridge_port_mapping:
         type: integer
