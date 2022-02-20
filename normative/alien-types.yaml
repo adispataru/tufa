@@ -10,7 +10,7 @@ imports:
   # - "docker-types:3.0.0"
 
 artifact_types:
-  tosca.artifacts.Deployment.Image.Container:
+  tufa.art.Deployment.Image.Container:
     description: Container Image
     derived_from: tosca.artifacts.Deployment.Image
 
@@ -298,6 +298,29 @@ capability_types:
         constraints:
           - greater_or_equal: 0 MB
 
+  tufa.cap.Endpoint.Docker:
+    derived_from: tosca.capabilities.Endpoint
+    description: >
+      Endpoint generic capability for a Docker container, allowing implementation
+      of Docker bridge networking.
+    properties:
+      docker_bridge_port_mapping:
+        type: integer
+        description: Port used to bridge to the container's endpoint.
+        default: 0
+
+  tufa.cap.Endpoint.Docker.SSH:
+    derived_from: tufa.cap.Endpoint.Docker
+    description: >
+      Capability to connect to a container via SSH.
+    properties:
+      docker_bridge_port_mapping:
+        type: integer
+        description: Port used to bridge to the container's endpoint.
+        default: 0
+      port:
+        type: integer
+        default: 22
 
   tufa.cap.Service:
     derived_from: tosca.capabilities.Root
@@ -331,16 +354,7 @@ capability_types:
       Capability exposed by DFE
 
 
-  tufa.cap.Endpoint.Docker:
-    derived_from: tosca.capabilities.Endpoint
-    description: >
-      Endpoint generic capability for a Docker container, allowing implementation
-      of Docker bridge networking.
-    properties:
-      docker_bridge_port_mapping:
-        type: integer
-        description: Port used to bridge to the container's endpoint.
-        default: 0
+  
 
 relationship_types:
 
