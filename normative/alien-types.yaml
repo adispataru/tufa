@@ -1,0 +1,406 @@
+tosca_definitions_version: alien_dsl_3_0_0
+description: Topology Orchestration Specification for Cloud Applications Using F Accelerators
+template_name: tufa-normative-types
+template_version: 1.0.0-SNAPSHOT
+template_author: AdrianSpataru
+
+
+imports:
+  - "tosca-normative-types:1.0.0-ALIEN20"
+  # - "docker-types:3.0.0"
+
+artifact_types:
+  tosca.artifacts.Deployment.Image.Container:
+    description: Container Image
+    derived_from: tosca.artifacts.Deployment.Image
+
+
+node_types:
+  #compute nodes  
+  tufa.nodes.Compute:
+    derived_from: tosca.nodes.Compute
+    description: Abstract Compute type
+    capabilities:
+      attach: tufa.cap.AccAttachment
+    
+
+  tufa.nodes.DockerHost:
+    derived_from: tufa.nodes.Compute
+    description: Abstract Container Host type
+    tags:
+      icon: images/docker.png
+    capabilities:
+      - host: tosca.capabilities.Container.Docker
+  
+  #software nodes
+  tufa.nodes.Service:
+    derived_from: tosca.nodes.Root
+    description: Abstract CL Software
+    abstract: true
+    tags:
+      icon: images/box_software.png
+    capabilities:
+      - service: tufa.cap.Service
+    properties:
+      performance:
+        type: float
+        required: true
+        default: 1.0
+      component_version:
+        type: string
+        required: true
+        default: "1.0.0"
+    requirements:
+      - host:
+          capability: tosca.capabilities.Container
+          relationship: tosca.relationships.HostedOn
+      - accelerator: 
+          capability: tufa.cap.Accelerator
+          relationship: tufa.rel.AcceleratedBy
+          occurrences: [0, 1]
+
+  tufa.nodes.Software:
+    derived_from: tufa.nodes.Service
+    description: Software that requires a compute host, with implementation files
+    interfaces:
+      Standard:
+        create: scripts/create.sh
+        start: 
+          description: Script for starting the service
+          implementation: scripts/start.sh
+        stop: scripts/stop.sh
+
+  tufa.nodes.Service.MICSoftware:
+    derived_from: tufa.nodes.Software
+    description: Software that requires a MIC, with implementation files
+    requirements:
+      - accelerator: 
+          capability: tufa.cap.MIC
+          relationship: tufa.rel.AcceleratedByMIC
+
+  tufa.nodes.Service.GPUSoftware:
+    derived_from: tufa.nodes.Software
+    description: Software that requires a GPU, with implementation files
+    requirements:
+      - accelerator:
+          capability: tufa.cap.GPU
+          relationship: tufa.rel.AcceleratedByGPU
+
+  tufa.nodes.Service.DFESoftware:
+    derived_from: tufa.nodes.Software
+    description: CL software that requires one or more DFE, with implementation files
+    requirements:
+      - accelerator: 
+          capability: tufa.cap.DFE
+          relationship: tufa.rel.AcceleratedByDFE
+
+  tufa.nodes.Container:
+    derived_from: tufa.nodes.Service
+    description: Abstract Docker Container
+    abstract: true
+    derived_from: tufa.nodes.Software
+    description: >
+      The TOSCA Container Application Docker node represents an application running in a Docker container.
+      Properties defined in the node will be interpreted as the entrypoint's arguments.
+    tags:
+      icon: /images/docker_software.png
+    properties:
+      cpu:
+        type: float
+        required: true
+        default: 1.0
+      mem:
+        type: scalar-unit.size
+        required: true
+        default: 128 MB
+        constraints:
+          - greater_or_equal: 0 MB
+      disk_share:
+        type: integer
+        required: false
+      docker_options:
+        type: map
+        required: false
+        entry_schema:
+          description: Arbitrary command-line options for the docker run command.
+          type: string
+      docker_run_args:
+        type: list
+        required: false
+        entry_schema:
+          description: Docker run arguments. Allows safe usage of Docker ENTRYPOINT statement in the Dockerfile.
+          type: string
+      docker_run_cmd:
+        type: string
+        required: false
+        description: Docker run command. Will override the Dockerfile CMD statement.
+      docker_env_vars:
+        type: map
+        required: false
+        entry_schema:
+          description: Environment variables for the Docker container.
+          type: string
+      docker_force_pull_image:
+        type: boolean
+        required: true
+        default: true
+    attributes:
+      endpoint:
+        type: string
+        description: >
+          Reflects the external endpoint assigned to this container.
+    capabilities:
+      scalable: tosca.capabilities.Scalable
+    requirements:
+      - host:
+          capability: tosca.capabilities.Container.Docker
+          relationship: tosca.relationships.HostedOn
+          occurrences: [0, 1]
+
+  tufa.nodes.MICContainer:
+    derived_from: tufa.nodes.Container
+    description: MIC Docker Container
+    requirements:
+      - accelerator: 
+          capability: tufa.cap.MIC
+          relationship: tufa.rel.AcceleratedByMIC
+
+  tufa.nodes.GPUContainer:
+    derived_from: tufa.nodes.Container
+    description: GPU Docker Container
+    requirements:
+      - accelerator: 
+          capability: tufa.cap.GPU
+          relationship: tufa.rel.AcceleratedByGPU
+
+  tufa.nodes.DFEContainer:
+    derived_from: tufa.nodes.Container
+    description: DFE Docker Container
+    requirements:
+      - accelerator: 
+          capability: tufa.cap.DFE
+          relationship: tufa.rel.AcceleratedByDFE
+
+  #basic accelerator
+  tufa.nodes.Accelerator:
+    derived_from: tosca.nodes.Root
+    description: The base Accelerator type
+    abstract: true
+    tags:
+      icon: /images/accelerator.png
+    capabilities:
+      accelerator: tufa.cap.Accelerator
+    requirements:
+      - attachment:
+          capability: tufa.cap.AccAttachment
+          relationship: tufa.rel.Accelerator.AttachesTo
+          occurrences: [1, 1]
+      
+    
+  #concrete accelerators
+  tufa.nodes.MIC:
+    derived_from: tufa.nodes.Accelerator
+    tags:
+      icon: /images/mic.png
+    properties:
+      cores:
+        type: integer
+        required: false
+        default: 1
+    capabilities:
+      accelerator: tufa.cap.MIC
+
+  tufa.nodes.GPU:
+    derived_from: tufa.nodes.Accelerator
+    tags:
+      icon: /images/gpu.png
+    properties:
+      num_gpu:
+        type: integer
+        required: false
+        default: 1
+    capabilities:
+      accelerator: tufa.cap.GPU
+
+  tufa.nodes.DFE:
+    derived_from: tufa.nodes.Accelerator
+    tags:
+      icon: /images/dfe.png
+    properties:
+      dfe_model:
+        type: string
+        default: MAIA
+        constraints:
+          - valid_values: [MAIA, ISCA, VECTIS, CORIA]
+      num_dfe:
+        type: integer
+        description: number of DFEs required
+        default: 1
+        constraints:
+          - valid_values: [ 1, 2, 4, 8 ]
+    capabilities:
+      accelerator: tufa.cap.DFE
+
+
+
+capability_types:
+  
+
+  tosca.capabilities.Container.Docker:
+    derived_from: tosca.capabilities.Container
+    description: >
+      The capacity to host and run Docker containers.
+
+  tosca.capabilities.Compute:
+    derived_from: tosca.capabilities.Container
+    description: >
+      The Compute capability, when included on a Node Type or Template
+      definition, indicates that the node can provide hosting on a
+      named compute resource.
+    properties:
+      name: 
+        type: string
+        description: >-
+          The otional name (or identifier) of a specific compute
+          resource for hosting.
+        required: false
+      num_cpus:
+        type: integer
+        description: >-
+          Number of (actual or virtual) CPUs associated with the
+          Compute node.
+        required: false
+        constraints:
+          - greater_or_equal: 1
+      cpu_frequency:
+        type: scalar-unit.frequency
+        description: >
+          Specifies the operating frequency of CPU's core.  This
+          property expresses the expected frequency of one (1) CPU as
+          provided by the property “num_cpus”.
+        required: false
+        constraints:
+          - greater_or_equal: 0.1 GHz
+      disk_size:
+        type: scalar-unit.size
+        description: >-
+          Size of the local disk available to applications running on
+          the Compute node (default unit is MB).
+        required: false
+        constraints:
+          - greater_or_equal: 0 MB
+      mem_size:
+        type: scalar-unit.size
+        description: >-
+          Size of memory available to applications running on the
+          Compute node (default unit is MB).
+        required: false
+        constraints:
+          - greater_or_equal: 0 MB
+
+
+  tufa.cap.Service:
+    derived_from: tosca.capabilities.Root
+    description: >
+      This capability is used to search for implementations of an abstract TUFA service
+      Extend this capability and add it to your abstract service, and subsequent implementations.
+  
+
+  tufa.cap.AccAttachment:
+    derived_from: tosca.capabilities.Attachment
+    description: >
+      This capability should be extended to define an accelerator capability for a device
+      such as a GPU, MIC, or DFE
+
+  tufa.cap.Accelerator:
+    derived_from: tosca.capabilities.Root
+    description: >
+      This capability should be extended to define an accelerator capability for a device
+      such as a GPU, MIC, or DFE
+  tufa.cap.MIC:
+    derived_from: tufa.cap.Accelerator
+    description: >
+      Capability exposed by a MIC
+  tufa.cap.GPU:
+    derived_from: tufa.cap.Accelerator
+    description: >
+      Capability exposed by a GPU
+  tufa.cap.DFE:
+    derived_from: tufa.cap.Accelerator
+    description: >
+      Capability exposed by DFE
+
+
+  tufa.cap.Endpoint.Docker:
+    derived_from: tosca.capabilities.Endpoint
+    description: >
+      Endpoint generic capability for a Docker container, allowing implementation
+      of Docker bridge networking.
+    properties:
+      docker_bridge_port_mapping:
+        type: integer
+        description: Port used to bridge to the container's endpoint.
+        default: 0
+
+relationship_types:
+
+  tufa.rel.Accelerator.AttachesTo:
+    # renamed to AttachTo for Alien4Cloud
+    # derived_from: tosca.relationships.AttachesTo
+    derived_from: tosca.relationships.AttachTo
+    valid_target_types: [ tufa.cap.AccAttachment ]
+
+  tufa.rel.AcceleratedBy:
+    derived_from: tosca.relationships.Root
+    valid_target_types: [ tufa.cap.Accelerator ]
+    properties:
+      location:
+        type: string
+        required: true
+        description: Specifies where the driver is located on the host.
+        default: ''
+      mount_path:
+        type: string
+        required: true
+        description: Specifies where the driver is mounted for the software.
+        default: ''
+      mode:
+        type: string
+        required: true
+        description: Access mode
+        default: "RO"
+        constraints:
+          - valid_values: ["RO", "RW"]
+
+  tufa.rel.AcceleratedByMIC:
+    derived_from: tufa.rel.AcceleratedBy
+    valid_target_types: [ tufa.cap.MIC ]
+    properties:
+      location:
+        type: string
+        required: true
+        default: '/sys/class/mic/mic0'
+      mount_path:
+        type: string
+        required: true
+        default: '/sys/class/mic/mic0'
+  tufa.rel.AcceleratedByGPU:
+    derived_from: tufa.rel.AcceleratedBy
+    valid_target_types: [ tufa.cap.GPU ]
+    properties:
+      location:
+        type: string
+        required: true
+        default: 'nvidia_driver_384.90'
+      mount_path:
+        type: string
+        required: true
+        default: '/usr/local/nvidia'
+  tufa.rel.AcceleratedByDFE:
+    derived_from: tufa.rel.AcceleratedBy
+    valid_target_types: [ tufa.cap.DFE ]
+    properties:
+      mode:
+        type: string
+        required: true
+        default: 'RW'  
