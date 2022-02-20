@@ -1,13 +1,12 @@
-tosca_definitions_version: alien_dsl_1_3_0
-description: TOSCA genomics Myers sequence alignment 2016
+tosca_definitions_version: alien_dsl_2_0_0
+description: TUFA genomics Myers sequence alignment 2016
 template_name: cloudlightning-genomics-types
 template_version: 1.0.0-SNAPSHOT
 template_author: AdrianSpataru
 
 imports:
-  - "tosca-normative-types:1.0.0-SNAPSHOT"
-  - "cl-normative-types:1.0.0-SNAPSHOT"
-  - "docker-types:1.2.0-SNAPSHOT"
+  - "tosca-normative-types:1.0.0-ALIEN20"
+  - "tufa-normative-types:1.0.0-SNAPSHOT"
 
 repositories:
   docker:
@@ -16,7 +15,7 @@ repositories:
 
 node_types:
   cloudlightning.nodes.meta.GenomicsEngine:
-    derived_from: cloudlightning.nodes.CLService
+    derived_from: tufa.nodes.Service
     description: Abstract Genomics Sequence Alignment Node
     tags:
       icon: images/genomics.png
@@ -33,7 +32,7 @@ node_types:
   #     genomics_engine: tosca.capabilities.Endpoint
 
   cloudlightning.nodes.GenomicsEngineContainer:
-    derived_from: cloudlightning.nodes.CLContainer
+    derived_from: tufa.nodes.Container
     description: Genomics Sequence Alignment on Docker
     tags:
       icon: images/genomics_docker.png
@@ -67,7 +66,7 @@ node_types:
           implementation:
             file: "max-genomics-gateway"
             repository: docker
-            type: tosca.artifacts.Deployment.Image.Container.Docker
+            type: tufa.art.Deployment.Image.Container
 
   # cloudlightning.nodes.DFEGenomicsEngineSoftware:
   #   derived_from: cloudlightning.nodes.GenomicsEngineSoftware
@@ -83,8 +82,8 @@ node_types:
       performance: 8.78
     requirements:
       - accelerator:
-          capability: cloudlightning.capabilities.AcceleratedByDFE
-          relationship: cloudlightning.relationships.AcceleratedByDFE
+          capability: tufa.cap.DFE
+          relationship: tufa.rel.AcceleratedByDFE
     capabilities:
       genomics_engine: cloudlightning.capabilities.endpoint.DockerHOST.GenomicsEngineHOST
     properties:
@@ -113,12 +112,12 @@ node_types:
           implementation:
             file: "max-genomics-gateway"
             repository: docker
-            type: tosca.artifacts.Deployment.Image.Container.Docker
+            type: tufa.art.Deployment.Image.Container
 
 
 capability_types:
   cloudlightning.capabilities.CLService.GenomicsEngine:
-    derived_from: cloudlightning.capabilities.CLService
+    derived_from: tufa.cap.Service
     properties:
       num_cpu_threads:
         type: integer
@@ -136,7 +135,7 @@ capability_types:
         required: false
 
   cloudlightning.capabilities.endpoint.docker.SSH.GenomicsEngine:
-    derived_from: cloudlightning.capabilities.endpoint.docker.SSH
+    derived_from: tufa.cap.Endpoint.Docker.SSH
     properties:
       port: 
         type: integer
@@ -146,7 +145,7 @@ capability_types:
           description: Port used to bridge to the container's endpoint.
           default: 31010
   cloudlightning.capabilities.endpoint.DockerHOST.GenomicsEngineHOST:
-    derived_from: cloudlightning.capabilities.endpoint.DockerHOST
+    derived_from: tufa.cap.Endpoint.Docker.HOST
     properties:
       port: 
         type: integer
