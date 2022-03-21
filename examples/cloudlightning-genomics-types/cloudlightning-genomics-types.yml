@@ -68,22 +68,22 @@ node_types:
             repository: docker
             type: tufa.art.Deployment.Image.Container
 
-  # cloudlightning.nodes.DFEGenomicsEngineSoftware:
+  # cloudlightning.nodes.FPGAGenomicsEngineSoftware:
   #   derived_from: cloudlightning.nodes.GenomicsEngineSoftware
   #   requirements:
   #     - accelerator: 
-  #         capability: cloudlightning.capabilities.AcceleratedByDFE
-  #         relationship: cloudlightning.relationships.AcceleratedByDFE
+  #         capability: cloudlightning.capabilities.AcceleratedByFPGA
+  #         relationship: cloudlightning.relationships.AcceleratedByFPGA
 
-  cloudlightning.nodes.DFEGenomicsEngineContainer:
+  cloudlightning.nodes.FPGAGenomicsEngineContainer:
     derived_from: cloudlightning.nodes.GenomicsEngineContainer
     tags:
-      icon: images/genomics_dfe_docker.png
+      icon: images/genomics_FPGA_docker.png
       performance: 8.78
     requirements:
       - accelerator:
-          capability: tufa.cap.DFE
-          relationship: tufa.rel.AcceleratedByDFE
+          capability: tufa.cap.FPGA
+          relationship: tufa.rel.AcceleratedByFPGA
     capabilities:
       genomics_engine: cloudlightning.capabilities.endpoint.GenomicsEngineHOST
     properties:
@@ -95,13 +95,9 @@ node_types:
         type: scalar-unit.size
         required: true
         default: 20000 MB
-      num_dfe:
-        type: integer
-        required: true
-        default: 1
     attributes:
       SSH: {concat : ["ssh -p ", get_property : [SELF, genomics_engine, port], " maxeler@", get_property : [SELF, genomics_engine, ip_address]]}
-      command: {concat : ["./genomics/bin/alignReads -I " , get_property : [SELF, service, reference_genome],  " -i " , get_property : [SELF, service, pattern_reads], " -t ",  get_property : [SELF, service, num_cpu_threads], " -d ", get_property : [REQ_TARGET, accelerator, num_dfe],  " -w"]}
+      command: {concat : ["./genomics/bin/alignReads -I " , get_property : [SELF, service, reference_genome],  " -i " , get_property : [SELF, service, pattern_reads], " -t ",  get_property : [SELF, service, num_cpu_threads], " -d ", get_property : [REQ_TARGET, accelerator, num_FPGA],  " -w"]}
     interfaces:
       Standard:
         create:
