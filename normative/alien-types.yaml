@@ -19,14 +19,20 @@ node_types:
   #compute nodes  
   tufa.nodes.Compute:
     derived_from: tosca.nodes.Compute
-    description: Abstract Compute type
+    description: Compute type
     capabilities:
       attach: tufa.cap.AccAttachment
+
+  tufa.nodes.Compute.HPC:
+    derived_from: tufa.nodes.Compute
+    description: HPC Compute type
+    capabilities:
+      host: tufa.cap.HPC
     
 
-  tufa.nodes.DockerHost:
+  tufa.nodes.Compute.Container:
     derived_from: tufa.nodes.Compute
-    description: Abstract Container Host type
+    description: Container Host type
     tags:
       icon: images/docker.png
     capabilities:
@@ -70,8 +76,31 @@ node_types:
           implementation: scripts/start.sh
         stop: scripts/stop.sh
 
+  tufa.nodes.HPCSoftware:
+    derived_from: tufa.nodes.Service
+    description: Software that requires a compute host, with implementation files
+    requirements:
+      - host:
+          capability: tufa.cap.HPC
+          relationship: tosca.relationships.HostedOn
+    interfaces:
+      Standard:
+        create: scripts/create.sh
+        start: 
+          description: Script for starting the service
+          implementation: scripts/start.sh
+        stop: scripts/stop.sh
+
   tufa.nodes.Service.MICSoftware:
     derived_from: tufa.nodes.Software
+    description: Software that requires a MIC, with implementation files
+    requirements:
+      - accelerator: 
+          capability: tufa.cap.MIC
+          relationship: tufa.rel.AcceleratedByMIC
+
+  tufa.nodes.Service.HPCMICSoftware:
+    derived_from: tufa.nodes.HPCSoftware
     description: Software that requires a MIC, with implementation files
     requirements:
       - accelerator: 
@@ -86,13 +115,29 @@ node_types:
           capability: tufa.cap.GPU
           relationship: tufa.rel.AcceleratedByGPU
 
-  tufa.nodes.Service.DFESoftware:
+  tufa.nodes.Service.HPCGPUSoftware:
     derived_from: tufa.nodes.Software
-    description: CL software that requires one or more DFE, with implementation files
+    description: Software that requires a GPU, with implementation files
+    requirements:
+      - accelerator:
+          capability: tufa.cap.GPU
+          relationship: tufa.rel.AcceleratedByGPU
+
+  tufa.nodes.Service.FPGASoftware:
+    derived_from: tufa.nodes.HPCSoftware
+    description: CL software that requires one or more FPGA, with implementation files
     requirements:
       - accelerator: 
-          capability: tufa.cap.DFE
-          relationship: tufa.rel.AcceleratedByDFE
+          capability: tufa.cap.FPGA
+          relationship: tufa.rel.AcceleratedByFPGA
+
+  tufa.nodes.Service.HPCFPGASoftware:
+    derived_from: tufa.nodes.HPCSoftware
+    description: CL software that requires one or more FPGA, with implementation files
+    requirements:
+      - accelerator: 
+          capability: tufa.cap.FPGA
+          relationship: tufa.rel.AcceleratedByFPGA
 
   tufa.nodes.Container:
     derived_from: tufa.nodes.Service
@@ -113,8 +158,6 @@ node_types:
         type: scalar-unit.size
         required: true
         default: 128 MB
-        constraints:
-          - greater_or_equal: 0 MB
       disk_share:
         type: integer
         required: false
@@ -173,13 +216,13 @@ node_types:
           capability: tufa.cap.GPU
           relationship: tufa.rel.AcceleratedByGPU
 
-  tufa.nodes.DFEContainer:
+  tufa.nodes.FPGAContainer:
     derived_from: tufa.nodes.Container
-    description: DFE Docker Container
+    description: FPGA Docker Container
     requirements:
       - accelerator: 
-          capability: tufa.cap.DFE
-          relationship: tufa.rel.AcceleratedByDFE
+          capability: tufa.cap.FPGA
+          relationship: tufa.rel.AcceleratedByFPGA
 
   #basic accelerator
   tufa.nodes.Accelerator:
@@ -207,6 +250,10 @@ node_types:
         type: integer
         required: false
         default: 1
+      memory:
+        type: scalar-unit.size
+        required: false
+        default: 6 GB
     capabilities:
       accelerator: tufa.cap.MIC
 
@@ -215,31 +262,36 @@ node_types:
     tags:
       icon: /images/gpu.png
     properties:
-      num_gpu:
+      cores:
         type: integer
         required: false
         default: 1
+      memory:
+        type: scalar-unit.size
+        required: false
+        default: 2 GB
     capabilities:
       accelerator: tufa.cap.GPU
 
-  tufa.nodes.DFE:
+  tufa.nodes.FPGA:
     derived_from: tufa.nodes.Accelerator
     tags:
       icon: /images/dfe.png
     properties:
-      dfe_model:
-        type: string
-        default: MAIA
-        constraints:
-          - valid_values: [MAIA, ISCA, VECTIS, CORIA]
-      num_dfe:
+      num_gates:
         type: integer
-        description: number of DFEs required
-        default: 1
-        constraints:
-          - valid_values: [ 1, 2, 4, 8 ]
+        required: false
+        default: 1000000
+      device_memory:
+        type: scalar-unit.size
+        required: false
+        default: 0 GB
+      host_memory:
+        type: scalar-unit.size
+        required: false
+        default: 8 GB
     capabilities:
-      accelerator: tufa.cap.DFE
+      accelerator: tufa.cap.FPGA
 
 
 
@@ -258,7 +310,7 @@ capability_types:
       definition, indicates that the node can provide hosting on a
       named compute resource.
     properties:
-      name: 
+      name:
         type: string
         description: >-
           The otional name (or identifier) of a specific compute
@@ -346,13 +398,19 @@ capability_types:
     derived_from: tosca.capabilities.Attachment
     description: >
       This capability should be extended to define an accelerator capability for a device
-      such as a GPU, MIC, or DFE
+      such as a GPU, MIC, or FPGA
+
+  tufa.cap.HPC:
+    derived_from: tosca.capabilities.Compute
+    description: >
+      This capability should be extended to define an accelerator capability for a device
+      such as a GPU, MIC, or FPGA
 
   tufa.cap.Accelerator:
     derived_from: tosca.capabilities.Root
     description: >
       This capability should be extended to define an accelerator capability for a device
-      such as a GPU, MIC, or DFE
+      such as a GPU, MIC, or FPGA
   tufa.cap.MIC:
     derived_from: tufa.cap.Accelerator
     description: >
@@ -361,10 +419,10 @@ capability_types:
     derived_from: tufa.cap.Accelerator
     description: >
       Capability exposed by a GPU
-  tufa.cap.DFE:
+  tufa.cap.FPGA:
     derived_from: tufa.cap.Accelerator
     description: >
-      Capability exposed by DFE
+      Capability exposed by FPGA
 
 
   
@@ -423,9 +481,9 @@ relationship_types:
         type: string
         required: true
         default: '/usr/local/nvidia'
-  tufa.rel.AcceleratedByDFE:
+  tufa.rel.AcceleratedByFPGA:
     derived_from: tufa.rel.AcceleratedBy
-    valid_target_types: [ tufa.cap.DFE ]
+    valid_target_types: [ tufa.cap.FPGA ]
     properties:
       mode:
         type: string
