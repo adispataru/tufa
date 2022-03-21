@@ -30,11 +30,11 @@ node_types:
       icon: images/upscaling_docker.png
       performance: 1.0
     properties:
-      cpu_share:
+      cpu:
         type: float
         required: true
         default: 4
-      mem_share:
+      mem:
         type: scalar-unit.size
         required: true
         default: 128 MB
@@ -60,11 +60,11 @@ node_types:
       performance: 1.05
     description: PETSc based gpu acceleration using nvidia-docker run.
     properties:
-      cpu_share:
+      cpu:
         type: float
         required: true
         default: 0.1
-      mem_share:
+      mem:
         type: scalar-unit.size
         required: true
         default: 512 MB

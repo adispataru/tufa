@@ -43,11 +43,11 @@ node_types:
       icon: images/raytrace_intel.png
       performance: 1.0
     properties:
-      cpu_share:
+      cpu:
         type: float
         required: true
-        default: 0.1
-      mem_share:
+        default: 1
+      mem:
         type: scalar-unit.size
         required: true
         default: 512 MB
@@ -71,11 +71,11 @@ node_types:
       performance: 4.0
     description: Embree based RayTracing Node With Intel Phi Acceleration
     properties:
-      cpu_share:
+      cpu:
         type: float
         required: true
-        default: 0.1
-      mem_share:
+        default: 1
+      mem:
         type: scalar-unit.size
         required: true
         default: 512 MB
@@ -101,11 +101,11 @@ node_types:
       icon: images/raytrace_ui_docker.png
       performance: 1.0
     properties:
-      cpu_share:
+      cpu:
         type: float
         required: true
-        default: 0.1
-      mem_share:
+        default: 1
+      mem:
         type: scalar-unit.size
         required: true
         default: 512 MB

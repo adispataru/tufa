@@ -32,11 +32,11 @@ node_types:
       performance: 4.0
     description: PETSc based gpu acceleration using nvidia-docker run.
     properties:
-      cpu_share:
+      cpu:
         type: float
         required: true
         default: 1
-      mem_share:
+      mem:
         type: scalar-unit.size
         required: true
         default: 512 MB
@@ -70,11 +70,11 @@ node_types:
       performance: 1.0
     description: PETSc based gpu acceleration using nvidia-docker run.
     properties:
-      cpu_share:
+      cpu:
         type: float
         required: true
         default: 1
-      mem_share:
+      mem:
         type: scalar-unit.size
         required: true
         default: 512 MB
@@ -103,11 +103,11 @@ node_types:
       performance: 3.5
     description: PETSc based gpu acceleration using nvidia-docker run.
     properties:
-      cpu_share:
+      cpu:
         type: float
         required: true
         default: 1
-      mem_share:
+      mem:
         type: scalar-unit.size
         required: true
         default: 512 MB

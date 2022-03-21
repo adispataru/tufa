@@ -38,11 +38,11 @@ node_types:
       icon: images/genomics_docker.png
       performance: 1.0
     properties:
-      cpu_share:
+      cpu:
         type: float
         required: true
         default: 8
-      mem_share:
+      mem:
         type: scalar-unit.size
         required: true
         default: 20000 MB
@@ -87,11 +87,11 @@ node_types:
     capabilities:
       genomics_engine: cloudlightning.capabilities.endpoint.DockerHOST.GenomicsEngineHOST
     properties:
-      cpu_share:
+      cpu:
         type: float
         required: true
         default: 8
-      mem_share:
+      mem:
         type: scalar-unit.size
         required: true
         default: 20000 MB
