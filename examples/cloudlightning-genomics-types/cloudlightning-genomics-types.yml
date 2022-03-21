@@ -85,7 +85,7 @@ node_types:
           capability: tufa.cap.DFE
           relationship: tufa.rel.AcceleratedByDFE
     capabilities:
-      genomics_engine: cloudlightning.capabilities.endpoint.DockerHOST.GenomicsEngineHOST
+      genomics_engine: cloudlightning.capabilities.endpoint.GenomicsEngineHOST
     properties:
       cpu:
         type: float
@@ -144,7 +144,7 @@ capability_types:
           type: integer
           description: Port used to bridge to the container's endpoint.
           default: 31010
-  cloudlightning.capabilities.endpoint.DockerHOST.GenomicsEngineHOST:
+  cloudlightning.capabilities.endpoint.GenomicsEngineHOST:
     derived_from: tufa.cap.Endpoint.Docker.HOST
     properties:
       port: 
