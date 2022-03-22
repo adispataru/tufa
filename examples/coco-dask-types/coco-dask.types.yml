@@ -1,0 +1,126 @@
+tosca_definitions_version: alien_dsl_2_0_0
+description: TUFA Demo 2022
+template_name: coco-dask-types
+template_version: 1.0.0-SNAPSHOT
+template_author: AdrianSpataru
+
+imports:
+  - "tosca-normative-types:1.0.0-ALIEN20"
+  - "tufa-normative-types:1.0.0-SNAPSHOT"
+
+repositories:
+  docker:
+    url: https://hub.docker.com/
+    type: http
+
+node_types:    
+  coco.nodes.meta.DASKCluster:
+    abstract: true
+    derived_from: tufa.nodes.Service
+    tags:
+      icon: images/dask.png
+    description: Abstract DASK Cluster definition
+    capabilities:
+      dask_API: coco.cap.endpoint.DASK
+      service: coco.cap.DASKCluster
+  
+  coco.nodes.SimpleDASK:
+    derived_from: tufa.nodes.Container
+    tags:
+      performance: 1.0
+    properties:
+      cpu:
+        type: float
+        required: true
+        default: 1
+      mem:
+        type: scalar-unit.size
+        required: true
+        default: 2 GB
+    capabilities:
+      dask_API: coco.cap.endpoint.DASK
+      service: coco.cap.DASKCluster
+    interfaces:
+      Standard:
+        create:
+          implementation:
+            file: "adispataru/simpledask:1"
+            repository: docker
+            type: tufa.art.Deployment.Image.Container
+
+  coco.nodes.GPUDASK:
+    derived_from: coco.nodes.SimpleDASK
+    tags:
+      performance: 4.0
+    description: DASK Cluster definition with GPU acceleration
+    properties:
+      cpu:
+        type: float
+        required: true
+        default: 1
+      mem:
+        type: scalar-unit.size
+        required: true
+        default: 2 GB
+    # this can be ommited as is inherrited from SimpleRayTracingEngine
+    capabilities:
+      dask_API: coco.cap.endpoint.DASK
+      service: coco.cap.DASKCluster
+    requirements:
+      - accelerator: 
+          capability: tufa.cap.GPU
+          relationship: tufa.rel.AcceleratedByGPU
+          # add node_filters:
+    interfaces:
+      Standard:
+        create:
+          implementation:
+            file: "adispataru/gpudask:1"
+            repository: docker
+            type: tufa.art.Deployment.Image.Container
+
+
+
+
+  coco.nodes.JupyterNB:
+    derived_from: tufa.nodes.Container
+    tags:
+      icon: images/jupyter.png
+      performance: 1.0
+    properties:
+      cpu:
+        type: float
+        required: true
+        default: 1
+      mem:
+        type: scalar-unit.size
+        required: true
+        default: 2 GB
+    capabilities:
+      endpoint: tosca.capabilities.Endpoint
+    attributes:
+      WebUi: {concat : ["http://", get_property : [SELF, WebUI_endpoint, ip_address], ":", get_property : [SELF, WebUI_endpoint, port]]}
+    requirements:
+      dask: 
+        capability: coco.cap.endpoint.DASK
+        relationship: tosca.relationships.ConnectsTo
+    interfaces:
+      Standard:
+        create:
+          inputs:
+            ENV_RT_ENGINE: { get_property: [REQ_TARGET, dask, ip_address]}
+            ENV_RT_ENGINE_PORT: { get_property: [REQ_TARGET, dask, port]}
+          implementation:
+            file: "adispataru/ray_tracing_app:2.2"
+            repository: docker
+            type: tufa.art.Deployment.Image.Container
+
+
+capability_types:
+  coco.cap.DASKCluster:
+    derived_from: tufa.cap.Service
+  coco.cap.endpoint.DASK:
+    derived_from: tosca.capabilities.Endpoint
+
+
+  
